@@ -1,0 +1,670 @@
+<title>設備管理効率化システム イメージ(モック)</title>
+<style>
+  :root{
+    --ground:#F1F4F3;
+    --surface:#FFFFFF;
+    --ink:#16232B;
+    --ink-soft:#4B5D63;
+    --line:#CBD6D2;
+    --line-soft:#E1E8E5;
+    --teal:#175C52;
+    --teal-deep:#0F4038;
+    --teal-tint:#E3EFEC;
+    --gold:#C79A3C;
+    --gold-tint:#FBF1DC;
+    --red:#B4483A;
+    --red-tint:#F7E9E6;
+    --font-jp: "Hiragino Sans", "Yu Gothic Medium", "YuGothic", "Meiryo", sans-serif;
+    --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Courier New", monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--font-jp);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:48px 32px 96px;
+    display:flex;
+    flex-direction:column;
+    gap:40px;
+  }
+
+  /* ---- Header ---- */
+  .head{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:28px;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    font-weight:600;
+  }
+  h1{
+    margin:0;
+    font-size:clamp(24px,3vw,32px);
+    font-weight:700;
+    letter-spacing:.01em;
+    text-wrap:balance;
+  }
+  .head p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:15px;
+    max-width:64ch;
+  }
+  .meta-row{
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+    font-size:13px;
+    color:var(--ink-soft);
+    font-family:var(--font-mono);
+  }
+  .meta-row strong{
+    color:var(--ink);
+    font-family:var(--font-jp);
+    font-weight:600;
+  }
+
+  /* ---- Before / After ---- */
+  .compare{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:20px;
+    align-items:stretch;
+  }
+  @media (max-width:760px){
+    .compare{grid-template-columns:1fr;}
+    .compare .arrow{display:none;}
+  }
+  .compare-card{
+    background:var(--surface);
+    border:1px solid var(--line-soft);
+    border-radius:4px;
+    padding:22px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .compare-card.before{border-left:3px solid var(--red);}
+  .compare-card.after{border-left:3px solid var(--teal);}
+  .compare-label{
+    font-size:12px;
+    letter-spacing:.08em;
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  .compare-card.before .compare-label{color:var(--red);}
+  .compare-card.after .compare-label{color:var(--teal-deep);}
+  .compare-card ul{
+    margin:0;
+    padding-left:1.1em;
+    font-size:14px;
+    color:var(--ink-soft);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .arrow{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--line);
+    font-size:28px;
+  }
+
+  /* ---- Tabs ---- */
+  .tabs{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+  }
+  .tabset{display:flex; gap:4px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tabset input{display:none;}
+  .tabset label{
+    padding:12px 18px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border:1px solid transparent;
+    border-bottom:none;
+    border-radius:6px 6px 0 0;
+    transform:translateY(1px);
+  }
+  .tabset label:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+  .panel{
+    display:none;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-top:none;
+    padding:32px;
+    border-radius:0 0 6px 6px;
+  }
+  #tab1:checked ~ .tabset label[for="tab1"],
+  #tab2:checked ~ .tabset label[for="tab2"],
+  #tab3:checked ~ .tabset label[for="tab3"],
+  #tab4:checked ~ .tabset label[for="tab4"]{
+    color:var(--teal-deep);
+    background:var(--surface);
+    border-color:var(--line);
+    border-bottom-color:var(--surface);
+  }
+  #tab1:checked ~ .panels #panel1{display:block;}
+  #tab2:checked ~ .panels #panel2{display:block;}
+  #tab3:checked ~ .panels #panel3{display:block;}
+  #tab4:checked ~ .panels #panel4{display:block;}
+
+  .screen-note{
+    font-size:13px;
+    color:var(--ink-soft);
+    background:var(--teal-tint);
+    border:1px solid #CFE2DC;
+    padding:10px 14px;
+    border-radius:4px;
+    margin-bottom:22px;
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+    padding:3px 9px;
+    border-radius:999px;
+    background:var(--teal-tint);
+    color:var(--teal-deep);
+    border:1px solid #BFDCD4;
+    width:fit-content;
+  }
+  .badge::before{content:"●"; font-size:8px; color:var(--teal);}
+  .badge.gold{background:var(--gold-tint); color:#8A6414; border-color:#E9D9AE;}
+  .badge.gold::before{color:var(--gold);}
+  .badge.red{background:var(--red-tint); color:#8A3226; border-color:#E7C3BC;}
+  .badge.red::before{color:var(--red);}
+
+  /* ---- Floor plan mock (Tab1) ---- */
+  .floorplan-mock{display:grid; grid-template-columns:1.4fr 1fr; gap:24px; align-items:start;}
+  @media (max-width:840px){ .floorplan-mock{grid-template-columns:1fr;} }
+  .fp-marker-inputs{display:none;}
+
+  .mock-card{
+    border:1px solid var(--line-soft);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .mock-titlebar{
+    background:var(--ink);
+    color:#EAF1EF;
+    font-size:12px;
+    letter-spacing:.05em;
+    padding:8px 14px;
+    font-family:var(--font-mono);
+    display:flex;
+    justify-content:space-between;
+  }
+  .mock-body{padding:20px; background:var(--surface);}
+
+  .floorplan{
+    position:relative;
+    background:#F7FAF9;
+    border:1px dashed var(--line);
+    border-radius:4px;
+    aspect-ratio:4/3;
+    overflow:hidden;
+  }
+  .fp-zone{
+    position:absolute;
+    border:1px solid var(--line-soft);
+    border-radius:3px;
+    font-size:11px;
+    color:var(--ink-soft);
+    padding:6px 8px;
+    background:#FFFFFF;
+  }
+  .fp-zone.entrance{top:4%; left:3%; width:20%; height:16%;}
+  .fp-zone.register{top:4%; left:26%; width:22%; height:16%;}
+  .fp-zone.sales{top:24%; left:3%; width:66%; height:58%; background:#FBFCFC;}
+  .fp-zone.backyard{top:4%; right:3%; width:22%; height:78%; background:#F5F8F7;}
+
+  .fp-marker{
+    position:absolute;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:var(--teal-deep);
+    color:#fff;
+    font-family:var(--font-mono);
+    font-size:12px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    border:2px solid var(--surface);
+    box-shadow:0 1px 3px rgba(15,64,56,.35);
+  }
+  .fp-marker:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+  #m1:checked ~ .floorplan label[for="m1"],
+  #m2:checked ~ .floorplan label[for="m2"],
+  #m3:checked ~ .floorplan label[for="m3"],
+  #m4:checked ~ .floorplan label[for="m4"],
+  #m5:checked ~ .floorplan label[for="m5"]{
+    background:var(--gold);
+    color:var(--teal-deep);
+  }
+
+  .eq-detail{display:none;}
+  #m1:checked ~ .eq-detail-wrap #d1,
+  #m2:checked ~ .eq-detail-wrap #d2,
+  #m3:checked ~ .eq-detail-wrap #d3,
+  #m4:checked ~ .eq-detail-wrap #d4,
+  #m5:checked ~ .eq-detail-wrap #d5{display:flex;}
+
+  .eq-detail{
+    flex-direction:column;
+    gap:14px;
+  }
+  .eq-target{
+    font-size:13px;
+    color:var(--ink-soft);
+    padding-bottom:12px;
+    border-bottom:1px dashed var(--line);
+  }
+  .eq-target strong{color:var(--ink); font-size:16px; display:block; margin-top:2px;}
+  .eq-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .eq-item{background:#FBFCFC; border:1px solid var(--line-soft); border-radius:4px; padding:11px 13px;}
+  .eq-item .k{font-size:11px; color:var(--ink-soft); letter-spacing:.03em;}
+  .eq-item .v{font-size:14.5px; font-weight:700; margin-top:4px; font-family:var(--font-mono);}
+  .eq-item.warn{border-left:3px solid var(--gold);}
+  .eq-item.danger{border-left:3px solid var(--red);}
+  .callout{display:flex; gap:10px; font-size:12.5px; color:var(--ink-soft); align-items:flex-start;}
+  .callout .dot{color:var(--teal); font-weight:700;}
+
+  /* ---- Tables (Tab2, Tab3) ---- */
+  .table-toolbar{display:flex; gap:12px; align-items:center; margin-bottom:16px; flex-wrap:wrap;}
+  .table-toolbar select, .table-toolbar input{
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:9px 10px;
+    font-family:var(--font-jp);
+    font-size:13.5px;
+    background:#FBFCFC;
+  }
+  .table-scroll{overflow-x:auto; border:1px solid var(--line-soft); border-radius:4px;}
+  table.master{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+    min-width:760px;
+  }
+  table.master th{
+    text-align:left;
+    background:#F5F8F7;
+    font-size:11px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    padding:10px 12px;
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0;
+  }
+  table.master td{
+    padding:10px 12px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  table.master td.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  table.master tr:hover td{background:var(--teal-tint);}
+  table.master tr.alert-danger td{background:var(--red-tint);}
+  table.master tr.alert-warn td{background:var(--gold-tint);}
+
+  .alert-notice{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    background:var(--red-tint);
+    border:1px solid #E7C3BC;
+    border-radius:4px;
+    padding:14px 16px;
+    margin-bottom:18px;
+    font-size:13px;
+  }
+  .alert-notice .icon{font-size:16px; line-height:1.4;}
+  .alert-notice strong{display:block; color:#8A3226; font-size:13.5px; margin-bottom:2px;}
+
+  /* ---- Chatbot mock (Tab4) ---- */
+  .chat-window{
+    max-width:560px;
+    margin:0 auto;
+    border:1px solid var(--line-soft);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .chat-titlebar{
+    background:var(--teal-deep);
+    color:#EAF1EF;
+    font-size:13px;
+    font-weight:600;
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .chat-titlebar .dot-live{width:7px; height:7px; border-radius:50%; background:#7FD7C4;}
+  .chat-body{padding:20px; background:#FAFBFB; display:flex; flex-direction:column; gap:14px;}
+  .msg{display:flex; flex-direction:column; gap:4px; max-width:82%;}
+  .msg.user{align-self:flex-end; align-items:flex-end;}
+  .msg.bot{align-self:flex-start; align-items:flex-start;}
+  .msg .bubble{
+    padding:10px 14px;
+    border-radius:12px;
+    font-size:13.5px;
+    line-height:1.6;
+  }
+  .msg.user .bubble{background:var(--teal-deep); color:#fff; border-bottom-right-radius:3px;}
+  .msg.bot .bubble{background:#fff; border:1px solid var(--line-soft); color:var(--ink); border-bottom-left-radius:3px;}
+  .msg .who{font-size:10.5px; color:var(--ink-soft); letter-spacing:.03em;}
+  .chat-input{
+    display:flex;
+    gap:8px;
+    padding:12px 16px;
+    border-top:1px solid var(--line-soft);
+    background:#fff;
+  }
+  .chat-input input{
+    flex:1;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:9px 16px;
+    font-size:13px;
+    font-family:var(--font-jp);
+    background:#FBFCFC;
+  }
+  .chat-input button{
+    background:var(--teal-deep);
+    color:#fff;
+    border:none;
+    border-radius:20px;
+    padding:9px 20px;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .chat-input button:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+  .chat-source{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    background:var(--teal-tint);
+    border:1px solid #CFE2DC;
+    border-radius:4px;
+    padding:6px 10px;
+    margin-top:2px;
+  }
+
+  /* ---- Footnote ---- */
+  .footnote{
+    border-top:1px solid var(--line);
+    padding-top:20px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .footnote strong{color:var(--ink);}
+</style>
+
+<div class="wrap">
+
+  <div class="head">
+    <span class="eyebrow">System Mock — Draft for Confirmation</span>
+    <h1>設備管理業務 効率化イメージ(モック)</h1>
+    <p>店舗の設備情報(品番・導入時期・保証期間等)を、レイアウト図からのクリックや台帳一覧で一元的に確認できるイメージです。あわせて交換時期アラートと社内チャットボットのイメージもご確認をお願いいたします。</p>
+    <div class="meta-row">
+      <span><strong>対象業務</strong> 店舗設備管理</span>
+      <span><strong>作成日</strong> 2026-07-08</span>
+      <span><strong>ステータス</strong> たたき台(要件確定前)</span>
+    </div>
+  </div>
+
+  <div class="compare">
+    <div class="compare-card before">
+      <span class="compare-label">現状</span>
+      <ul>
+        <li>設備管理が現場(店舗)ごとに実施され、導入時期・品番の情報が不十分</li>
+        <li>スプレッドシートで管理、項目が多く運用負荷が高い</li>
+        <li>店舗からの設備に関する問い合わせが本部に集中</li>
+      </ul>
+    </div>
+    <div class="arrow">→</div>
+    <div class="compare-card after">
+      <span class="compare-label">提案イメージ</span>
+      <ul>
+        <li>店舗レイアウト図をクリックして設備情報を確認</li>
+        <li>店舗別・全社横断で設備台帳を一元管理</li>
+        <li>交換時期・保証期限が近づくと自動でアラート</li>
+        <li>社内チャットボットが設備情報や資料の所在を案内</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <input type="radio" name="tabgroup" id="tab1" checked>
+    <input type="radio" name="tabgroup" id="tab2">
+    <input type="radio" name="tabgroup" id="tab3">
+    <input type="radio" name="tabgroup" id="tab4">
+    <div class="tabset">
+      <label for="tab1">店舗レイアウト図</label>
+      <label for="tab2">店舗設備一覧</label>
+      <label for="tab3">交換時期・保証期限アラート</label>
+      <label for="tab4">社内チャットボット</label>
+    </div>
+
+    <div class="panels">
+
+      <!-- Panel 1: Floor plan -->
+      <div class="panel" id="panel1">
+        <div class="screen-note">画面イメージ①: 店舗レイアウト図上の設備マーカーをクリックすると、右側に該当設備の情報が表示されます。(渋谷店の例)</div>
+
+        <div class="floorplan-mock">
+          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m1" checked>
+          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m2">
+          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m3">
+          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m4">
+          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m5">
+
+          <div class="mock-card">
+            <div class="mock-titlebar"><span>店舗レイアウト図</span><span>渋谷店</span></div>
+            <div class="mock-body">
+              <div class="floorplan">
+                <div class="fp-zone entrance">エントランス</div>
+                <div class="fp-zone register">レジ</div>
+                <div class="fp-zone sales">売場</div>
+                <div class="fp-zone backyard">バックヤード</div>
+
+                <label class="fp-marker" for="m1" style="top:9%; left:32%;">1</label>
+                <label class="fp-marker" for="m2" style="top:38%; left:15%;">2</label>
+                <label class="fp-marker" for="m3" style="top:38%; left:45%;">3</label>
+                <label class="fp-marker" for="m4" style="top:65%; left:60%;">4</label>
+                <label class="fp-marker" for="m5" style="top:12%; right:8%;">5</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-card eq-detail-wrap">
+            <div class="mock-titlebar"><span>設備情報</span><span>自動表示</span></div>
+            <div class="mock-body">
+
+              <div class="eq-detail" id="d1">
+                <div class="eq-target">選択中の設備<strong>① レジシステム</strong></div>
+                <span class="badge">稼働中</span>
+                <div class="eq-grid">
+                  <div class="eq-item"><div class="k">品番</div><div class="v">P-0512</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2022-04</div></div>
+                  <div class="eq-item"><div class="k">保証期間</div><div class="v">2027-03まで</div></div>
+                  <div class="eq-item"><div class="k">次回交換目安</div><div class="v">2028年頃</div></div>
+                </div>
+                <div class="callout"><span class="dot">→</span><span>スプレッドシート台帳の情報を、店舗コード・設備IDに紐付けて表示する想定です。</span></div>
+              </div>
+
+              <div class="eq-detail" id="d2">
+                <div class="eq-target">選択中の設備<strong>② 冷蔵ケース</strong></div>
+                <span class="badge gold">交換時期接近</span>
+                <div class="eq-grid">
+                  <div class="eq-item"><div class="k">品番</div><div class="v">P-2201</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2018-06</div></div>
+                  <div class="eq-item warn"><div class="k">保証期間</div><div class="v">2026-08まで</div></div>
+                  <div class="eq-item warn"><div class="k">次回交換目安</div><div class="v">残り約1ヶ月</div></div>
+                </div>
+                <div class="callout"><span class="dot">→</span><span>保証期限・交換目安が近い設備は、一覧側にもアラートとして表示されます(タブ③)。</span></div>
+              </div>
+
+              <div class="eq-detail" id="d3">
+                <div class="eq-target">選択中の設備<strong>③ 什器棚(什器什)</strong></div>
+                <span class="badge">稼働中</span>
+                <div class="eq-grid">
+                  <div class="eq-item"><div class="k">品番</div><div class="v">P-1830</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2021-11</div></div>
+                  <div class="eq-item"><div class="k">保証期間</div><div class="v">2026-11まで</div></div>
+                  <div class="eq-item"><div class="k">次回交換目安</div><div class="v">2029年頃</div></div>
+                </div>
+                <div class="callout"><span class="dot">→</span><span>設置場所・仕入先などの追加項目も台帳に応じて表示可能です。</span></div>
+              </div>
+
+              <div class="eq-detail" id="d4">
+                <div class="eq-target">選択中の設備<strong>④ 空調室内機</strong></div>
+                <span class="badge red">保証期限切れ間近</span>
+                <div class="eq-grid">
+                  <div class="eq-item"><div class="k">品番</div><div class="v">P-3007</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2016-09</div></div>
+                  <div class="eq-item danger"><div class="k">保証期間</div><div class="v">2026-07まで</div></div>
+                  <div class="eq-item danger"><div class="k">次回交換目安</div><div class="v">残り約2週間</div></div>
+                </div>
+                <div class="callout"><span class="dot">→</span><span>危険度の高い設備は本部側に通知が送られる想定です。</span></div>
+              </div>
+
+              <div class="eq-detail" id="d5">
+                <div class="eq-target">選択中の設備<strong>⑤ 看板</strong></div>
+                <span class="badge">稼働中</span>
+                <div class="eq-grid">
+                  <div class="eq-item"><div class="k">品番</div><div class="v">P-4410</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2023-03</div></div>
+                  <div class="eq-item"><div class="k">保証期間</div><div class="v">2027-03まで</div></div>
+                  <div class="eq-item"><div class="k">次回交換目安</div><div class="v">2030年頃</div></div>
+                </div>
+                <div class="callout"><span class="dot">→</span><span>写真・設置図面などの添付ファイル表示も拡張案として想定されます。</span></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Equipment list -->
+      <div class="panel" id="panel2">
+        <div class="screen-note">画面イメージ②: 店舗を選択すると、その店舗の設備台帳が一覧表示されます。スプレッドシートを開かずに検索・確認できます。</div>
+
+        <div class="table-toolbar">
+          <select><option>渋谷店</option><option>新宿店</option><option>横浜店</option></select>
+          <input type="text" placeholder="品番・設備名で検索" value="" />
+        </div>
+
+        <div class="table-scroll">
+          <table class="master">
+            <thead>
+              <tr><th>品番</th><th>設備名</th><th>設置場所</th><th>導入年月</th><th>保証期間</th><th>次回交換目安</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="mono">P-0512</td><td>レジシステム</td><td>レジ</td><td class="mono">2022-04</td><td class="mono">2027-03</td><td>2028年頃</td><td>稼働中</td></tr>
+              <tr class="alert-warn"><td class="mono">P-2201</td><td>冷蔵ケース</td><td>売場</td><td class="mono">2018-06</td><td class="mono">2026-08</td><td>残り約1ヶ月</td><td>交換時期接近</td></tr>
+              <tr><td class="mono">P-1830</td><td>什器棚</td><td>売場</td><td class="mono">2021-11</td><td class="mono">2026-11</td><td>2029年頃</td><td>稼働中</td></tr>
+              <tr class="alert-danger"><td class="mono">P-3007</td><td>空調室内機</td><td>バックヤード</td><td class="mono">2016-09</td><td class="mono">2026-07</td><td>残り約2週間</td><td>保証期限切れ間近</td></tr>
+              <tr><td class="mono">P-4410</td><td>看板</td><td>エントランス</td><td class="mono">2023-03</td><td class="mono">2027-03</td><td>2030年頃</td><td>稼働中</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Panel 3: Alerts -->
+      <div class="panel" id="panel3">
+        <div class="screen-note">画面イメージ③: 保証期限・交換時期が近づいた設備を、全店舗横断でショップ単位に一覧表示します。通知の元データにもなります。</div>
+
+        <div class="alert-notice">
+          <span class="icon">⚠</span>
+          <div>
+            <strong>アラート通知イメージ(メール/チャット通知)</strong>
+            保証期限まで残り12日:渋谷店 空調室内機(P-3007)。至急、交換要否のご確認をお願いします。
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="master">
+            <thead>
+              <tr><th>店舗名</th><th>品番</th><th>設備名</th><th>保証期限</th><th>残り日数</th><th>アラート区分</th></tr>
+            </thead>
+            <tbody>
+              <tr class="alert-danger"><td>渋谷店</td><td class="mono">P-3007</td><td>空調室内機</td><td class="mono">2026-07-20</td><td class="mono">残り12日</td><td>危険</td></tr>
+              <tr class="alert-warn"><td>渋谷店</td><td class="mono">P-2201</td><td>冷蔵ケース</td><td class="mono">2026-08-15</td><td class="mono">残り38日</td><td>警告</td></tr>
+              <tr class="alert-warn"><td>新宿店</td><td class="mono">P-2198</td><td>冷蔵ケース</td><td class="mono">2026-08-22</td><td class="mono">残り45日</td><td>警告</td></tr>
+              <tr><td>横浜店</td><td class="mono">P-1830</td><td>什器棚</td><td class="mono">2026-11-01</td><td class="mono">残り116日</td><td>-</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Panel 4: Chatbot -->
+      <div class="panel" id="panel4">
+        <div class="screen-note">画面イメージ④: 社内向けチャットボットのイメージです。設備情報や社内資料の所在に関する問い合わせに自動で回答します。</div>
+
+        <div class="chat-window">
+          <div class="chat-titlebar"><span class="dot-live"></span>社内サポートボット</div>
+          <div class="chat-body">
+            <div class="msg user">
+              <span class="who">店舗スタッフ</span>
+              <div class="bubble">渋谷店の看板の保証期限を教えてください</div>
+            </div>
+            <div class="msg bot">
+              <span class="who">サポートボット</span>
+              <div class="bubble">渋谷店 看板(品番:P-4410)の保証期限は2027年3月です。現時点でアラートは出ていません。</div>
+              <div class="chat-source">参照元:設備台帳(渋谷店 / P-4410)</div>
+            </div>
+            <div class="msg user">
+              <span class="who">店舗スタッフ</span>
+              <div class="bubble">什器の発注書はどこにありますか</div>
+            </div>
+            <div class="msg bot">
+              <span class="who">サポートボット</span>
+              <div class="bubble">什器の発注書は社内共有ドライブの「設備管理 &gt; 発注書」フォルダにあります。該当フォルダを開きますか?</div>
+              <div class="chat-source">参照元:社内資料インデックス</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <input type="text" placeholder="質問を入力してください" />
+            <button type="button">送信</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footnote">
+    <p><strong>本イメージについて</strong> 上記は貴社の設備管理業務のイメージをすり合わせるための、たたき台としての画面モックです。実際の項目・レイアウト・入力方式は、今後の詳細ヒアリングと技術的な実現可否の確認を踏まえて確定いたします。</p>
+    <p><strong>今後の進め方</strong> まずは設備台帳の一元化とレイアウト図からの確認(タブ①②)を優先してご検討いただき、交換時期アラート(タブ③)と社内チャットボット(タブ④)は運用開始後の拡張フェーズとしてご相談させてください。</p>
+  </div>
+
+</div>
