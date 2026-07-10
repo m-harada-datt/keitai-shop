@@ -579,8 +579,8 @@
         <div class="screen-note">画面イメージ②: 店舗を選択すると、その店舗の設備台帳が一覧表示されます。スプレッドシートを開かずに検索・確認できます。</div>
 
         <div class="table-toolbar">
-          <select><option>渋谷店</option><option>新宿店</option><option>横浜店</option></select>
-          <input type="text" placeholder="品番・設備名で検索" value="" />
+          <select id="branchSelect"></select>
+          <input type="text" id="eqSearch" placeholder="品番・設備名で検索" value="" />
         </div>
 
         <div class="table-scroll">
@@ -588,13 +588,7 @@
             <thead>
               <tr><th>品番</th><th>設備名</th><th>設置場所</th><th>導入年月</th><th>保証期間</th><th>次回交換目安</th><th>ステータス</th></tr>
             </thead>
-            <tbody>
-              <tr><td class="mono">P-0512</td><td>レジシステム</td><td>レジ</td><td class="mono">2022-04</td><td class="mono">2027-03</td><td>2028年頃</td><td>稼働中</td></tr>
-              <tr class="alert-warn"><td class="mono">P-2201</td><td>冷蔵ケース</td><td>売場</td><td class="mono">2018-06</td><td class="mono">2026-08</td><td>残り約1ヶ月</td><td>交換時期接近</td></tr>
-              <tr><td class="mono">P-1830</td><td>什器棚</td><td>売場</td><td class="mono">2021-11</td><td class="mono">2026-11</td><td>2029年頃</td><td>稼働中</td></tr>
-              <tr class="alert-danger"><td class="mono">P-3007</td><td>空調室内機</td><td>バックヤード</td><td class="mono">2016-09</td><td class="mono">2026-07</td><td>残り約2週間</td><td>保証期限切れ間近</td></tr>
-              <tr><td class="mono">P-4410</td><td>看板</td><td>エントランス</td><td class="mono">2023-03</td><td class="mono">2027-03</td><td>2030年頃</td><td>稼働中</td></tr>
-            </tbody>
+            <tbody id="eqTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -614,14 +608,9 @@
         <div class="table-scroll">
           <table class="master">
             <thead>
-              <tr><th>店舗名</th><th>品番</th><th>設備名</th><th>保証期限</th><th>残り日数</th><th>アラート区分</th></tr>
+              <tr><th>店舗名</th><th>品番</th><th>設備名</th><th>保証期限</th><th>残り目安</th><th>アラート区分</th></tr>
             </thead>
-            <tbody>
-              <tr class="alert-danger"><td>渋谷店</td><td class="mono">P-3007</td><td>空調室内機</td><td class="mono">2026-07-20</td><td class="mono">残り12日</td><td>危険</td></tr>
-              <tr class="alert-warn"><td>渋谷店</td><td class="mono">P-2201</td><td>冷蔵ケース</td><td class="mono">2026-08-15</td><td class="mono">残り38日</td><td>警告</td></tr>
-              <tr class="alert-warn"><td>新宿店</td><td class="mono">P-2198</td><td>冷蔵ケース</td><td class="mono">2026-08-22</td><td class="mono">残り45日</td><td>警告</td></tr>
-              <tr><td>横浜店</td><td class="mono">P-1830</td><td>什器棚</td><td class="mono">2026-11-01</td><td class="mono">残り116日</td><td>-</td></tr>
-            </tbody>
+            <tbody id="alertTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -668,3 +657,87 @@
   </div>
 
 </div>
+
+<script>
+  // ---- サンプルマスタデータ(支店・備品) ----
+  var BRANCHES = [
+    { code:"BR-01", name:"渋谷店" },
+    { code:"BR-02", name:"新宿店" },
+    { code:"BR-03", name:"横浜店" },
+    { code:"BR-04", name:"池袋店" },
+    { code:"BR-05", name:"秋葉原店" }
+  ];
+
+  var EQUIPMENT = [
+    { branch:"BR-01", code:"P-0512", name:"レジシステム", location:"レジ", install:"2022-04", warranty:"2027-03", next:"2028年頃", status:"稼働中", alert:null },
+    { branch:"BR-01", code:"P-2201", name:"冷蔵ケース", location:"売場", install:"2018-06", warranty:"2026-08", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn" },
+    { branch:"BR-01", code:"P-1830", name:"什器棚", location:"売場", install:"2021-11", warranty:"2026-11", next:"2029年頃", status:"稼働中", alert:null },
+    { branch:"BR-01", code:"P-3007", name:"空調室内機", location:"バックヤード", install:"2016-09", warranty:"2026-07", next:"残り約2週間", status:"保証期限切れ間近", alert:"danger" },
+    { branch:"BR-01", code:"P-4410", name:"看板", location:"エントランス", install:"2023-03", warranty:"2027-03", next:"2030年頃", status:"稼働中", alert:null },
+
+    { branch:"BR-02", code:"P-0520", name:"レジシステム", location:"レジ", install:"2021-09", warranty:"2026-09", next:"2028年頃", status:"稼働中", alert:null },
+    { branch:"BR-02", code:"P-2198", name:"冷蔵ケース", location:"売場", install:"2019-02", warranty:"2026-08", next:"残り約45日", status:"交換時期接近", alert:"warn" },
+    { branch:"BR-02", code:"P-1845", name:"什器棚", location:"売場", install:"2020-05", warranty:"2027-05", next:"2029年頃", status:"稼働中", alert:null },
+    { branch:"BR-02", code:"P-3015", name:"空調室内機", location:"バックヤード", install:"2019-11", warranty:"2027-11", next:"2030年頃", status:"稼働中", alert:null },
+    { branch:"BR-02", code:"P-4422", name:"看板", location:"エントランス", install:"2022-08", warranty:"2027-08", next:"2030年頃", status:"稼働中", alert:null },
+
+    { branch:"BR-03", code:"P-0533", name:"レジシステム", location:"レジ", install:"2020-03", warranty:"2025-03", next:"更新要検討", status:"要点検", alert:"warn" },
+    { branch:"BR-03", code:"P-2210", name:"冷蔵ケース", location:"売場", install:"2022-01", warranty:"2027-01", next:"2029年頃", status:"稼働中", alert:null },
+    { branch:"BR-03", code:"P-1830", name:"什器棚", location:"売場", install:"2017-08", warranty:"2026-11", next:"残り約116日", status:"稼働中", alert:null },
+    { branch:"BR-03", code:"P-3020", name:"空調室内機", location:"バックヤード", install:"2015-06", warranty:"2025-06", next:"交換要検討", status:"要点検", alert:"danger" },
+    { branch:"BR-03", code:"P-4430", name:"看板", location:"エントランス", install:"2021-12", warranty:"2026-12", next:"2029年頃", status:"稼働中", alert:null },
+
+    { branch:"BR-04", code:"P-0541", name:"レジシステム", location:"レジ", install:"2023-01", warranty:"2028-01", next:"2031年頃", status:"稼働中", alert:null },
+    { branch:"BR-04", code:"P-2220", name:"冷蔵ケース", location:"売場", install:"2021-07", warranty:"2026-07", next:"残り約20日", status:"保証期限切れ間近", alert:"danger" },
+    { branch:"BR-04", code:"P-1850", name:"什器棚", location:"売場", install:"2022-02", warranty:"2027-02", next:"2029年頃", status:"稼働中", alert:null },
+    { branch:"BR-04", code:"P-3030", name:"空調室内機", location:"バックヤード", install:"2020-10", warranty:"2028-10", next:"2031年頃", status:"稼働中", alert:null },
+    { branch:"BR-04", code:"P-4440", name:"看板", location:"エントランス", install:"2023-06", warranty:"2028-06", next:"2031年頃", status:"稼働中", alert:null },
+
+    { branch:"BR-05", code:"P-0552", name:"レジシステム", location:"レジ", install:"2019-11", warranty:"2024-11", next:"更新要検討", status:"要点検", alert:"warn" },
+    { branch:"BR-05", code:"P-2230", name:"冷蔵ケース", location:"売場", install:"2020-09", warranty:"2025-09", next:"残り約60日", status:"交換時期接近", alert:"warn" },
+    { branch:"BR-05", code:"P-1860", name:"什器棚", location:"売場", install:"2021-04", warranty:"2026-04", next:"2028年頃", status:"稼働中", alert:null },
+    { branch:"BR-05", code:"P-3040", name:"空調室内機", location:"バックヤード", install:"2018-12", warranty:"2026-12", next:"2029年頃", status:"稼働中", alert:null },
+    { branch:"BR-05", code:"P-4450", name:"看板", location:"エントランス", install:"2022-10", warranty:"2027-10", next:"2030年頃", status:"稼働中", alert:null }
+  ];
+
+  var ALERT_LABEL = { warn:"警告", danger:"危険" };
+  var BRANCH_NAME = {};
+  BRANCHES.forEach(function(b){ BRANCH_NAME[b.code] = b.name; });
+
+  // ---- タブ②: 店舗設備一覧 ----
+  var branchSelect = document.getElementById('branchSelect');
+  branchSelect.innerHTML = BRANCHES.map(function(b){
+    return '<option value="' + b.code + '">' + b.name + '</option>';
+  }).join('');
+
+  var eqSearch = document.getElementById('eqSearch');
+  var eqTableBody = document.getElementById('eqTableBody');
+
+  function renderEquipmentTable(){
+    var branchCode = branchSelect.value;
+    var q = eqSearch.value.trim().toLowerCase();
+    var rows = EQUIPMENT.filter(function(e){ return e.branch === branchCode; });
+    if(q){
+      rows = rows.filter(function(e){ return (e.code + e.name).toLowerCase().indexOf(q) !== -1; });
+    }
+    eqTableBody.innerHTML = rows.map(function(e){
+      var cls = e.alert ? ' class="alert-' + e.alert + '"' : '';
+      return '<tr' + cls + '><td class="mono">' + e.code + '</td><td>' + e.name + '</td><td>' + e.location + '</td>' +
+        '<td class="mono">' + e.install + '</td><td class="mono">' + e.warranty + '</td><td>' + e.next + '</td><td>' + e.status + '</td></tr>';
+    }).join('');
+  }
+
+  branchSelect.addEventListener('change', renderEquipmentTable);
+  eqSearch.addEventListener('input', renderEquipmentTable);
+  renderEquipmentTable();
+
+  // ---- タブ③: 交換時期・保証期限アラート ----
+  var alertTableBody = document.getElementById('alertTableBody');
+  var alertRows = EQUIPMENT.filter(function(e){ return e.alert; })
+    .sort(function(a, b){ return (a.alert === 'danger' ? 0 : 1) - (b.alert === 'danger' ? 0 : 1); });
+
+  alertTableBody.innerHTML = alertRows.map(function(e){
+    return '<tr class="alert-' + e.alert + '"><td>' + BRANCH_NAME[e.branch] + '</td><td class="mono">' + e.code + '</td><td>' + e.name + '</td>' +
+      '<td class="mono">' + e.warranty + '</td><td class="mono">' + e.next + '</td><td>' + ALERT_LABEL[e.alert] + '</td></tr>';
+  }).join('');
+</script>
