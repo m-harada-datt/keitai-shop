@@ -331,7 +331,6 @@
   /* ---- Floor plan mock (Tab1) ---- */
   .floorplan-mock{display:grid; grid-template-columns:1.4fr 1fr; gap:24px; align-items:start;}
   @media (max-width:840px){ .floorplan-mock{grid-template-columns:1fr;} }
-  .fp-marker-inputs{display:none;}
 
   .mock-card{
     border:1px solid var(--line-soft);
@@ -367,11 +366,6 @@
     padding:6px 8px;
     background:#FFFFFF;
   }
-  .fp-zone.entrance{top:4%; left:3%; width:20%; height:16%;}
-  .fp-zone.register{top:4%; left:26%; width:22%; height:16%;}
-  .fp-zone.sales{top:24%; left:3%; width:66%; height:58%; background:#FBFCFC;}
-  .fp-zone.backyard{top:4%; right:3%; width:22%; height:78%; background:#F5F8F7;}
-
   .fp-marker{
     position:absolute;
     width:26px;
@@ -390,23 +384,13 @@
     box-shadow:0 1px 3px rgba(15,64,56,.35);
   }
   .fp-marker:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
-  #m1:checked ~ .floorplan label[for="m1"],
-  #m2:checked ~ .floorplan label[for="m2"],
-  #m3:checked ~ .floorplan label[for="m3"],
-  #m4:checked ~ .floorplan label[for="m4"],
-  #m5:checked ~ .floorplan label[for="m5"]{
+  .fp-marker.active-marker{
     background:var(--gold);
     color:var(--teal-deep);
   }
 
-  .eq-detail{display:none;}
-  #m1:checked ~ .eq-detail-wrap #d1,
-  #m2:checked ~ .eq-detail-wrap #d2,
-  #m3:checked ~ .eq-detail-wrap #d3,
-  #m4:checked ~ .eq-detail-wrap #d4,
-  #m5:checked ~ .eq-detail-wrap #d5{display:flex;}
-
   .eq-detail{
+    display:flex;
     flex-direction:column;
     gap:14px;
   }
@@ -613,95 +597,16 @@
         <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替え、レイアウト図上の設備マーカーをクリックすると、右側に該当設備の情報が表示されます。</div>
 
         <div class="floorplan-mock">
-          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m1" checked>
-          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m2">
-          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m3">
-          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m4">
-          <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m5">
-
           <div class="mock-card">
             <div class="mock-titlebar"><span>店舗レイアウト図</span><span id="fpBranchName">渋谷店</span></div>
             <div class="mock-body">
-              <div class="floorplan">
-                <div class="fp-zone entrance">エントランス</div>
-                <div class="fp-zone register">レジ</div>
-                <div class="fp-zone sales">売場</div>
-                <div class="fp-zone backyard">バックヤード</div>
-
-                <label class="fp-marker" for="m1" style="top:9%; left:32%;">1</label>
-                <label class="fp-marker" for="m2" style="top:38%; left:15%;">2</label>
-                <label class="fp-marker" for="m3" style="top:38%; left:45%;">3</label>
-                <label class="fp-marker" for="m4" style="top:65%; left:60%;">4</label>
-                <label class="fp-marker" for="m5" style="top:12%; right:8%;">5</label>
-              </div>
+              <div class="floorplan" id="floorplanArea"></div>
             </div>
           </div>
 
           <div class="mock-card eq-detail-wrap">
             <div class="mock-titlebar"><span>設備情報</span><span>自動表示</span></div>
-            <div class="mock-body">
-
-              <div class="eq-detail" id="d1">
-                <div class="eq-target">選択中の設備<strong>① レジシステム</strong></div>
-                <span class="badge" id="badge1">稼働中</span>
-                <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code1">P-0512</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install1">2022-04</div></div>
-                  <div class="eq-item" id="warrantyItem1"><div class="k">保証期間</div><div class="v" id="warranty1">2027-03まで</div></div>
-                  <div class="eq-item" id="nextItem1"><div class="k">次回交換目安</div><div class="v" id="next1">2028年頃</div></div>
-                </div>
-                <div class="callout"><span class="dot">→</span><span>スプレッドシート台帳の情報を、店舗コード・設備IDに紐付けて表示する想定です。</span></div>
-              </div>
-
-              <div class="eq-detail" id="d2">
-                <div class="eq-target">選択中の設備<strong>② 冷蔵ケース</strong></div>
-                <span class="badge gold" id="badge2">交換時期接近</span>
-                <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code2">P-2201</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install2">2018-06</div></div>
-                  <div class="eq-item warn" id="warrantyItem2"><div class="k">保証期間</div><div class="v" id="warranty2">2026-08まで</div></div>
-                  <div class="eq-item warn" id="nextItem2"><div class="k">次回交換目安</div><div class="v" id="next2">残り約1ヶ月</div></div>
-                </div>
-                <div class="callout"><span class="dot">→</span><span>保証期限・交換目安が近い設備は、一覧側にもアラートとして表示されます(タブ③)。</span></div>
-              </div>
-
-              <div class="eq-detail" id="d3">
-                <div class="eq-target">選択中の設備<strong>③ 什器棚</strong></div>
-                <span class="badge" id="badge3">稼働中</span>
-                <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code3">P-1830</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install3">2021-11</div></div>
-                  <div class="eq-item" id="warrantyItem3"><div class="k">保証期間</div><div class="v" id="warranty3">2026-11まで</div></div>
-                  <div class="eq-item" id="nextItem3"><div class="k">次回交換目安</div><div class="v" id="next3">2029年頃</div></div>
-                </div>
-                <div class="callout"><span class="dot">→</span><span>設置場所・仕入先などの追加項目も台帳に応じて表示可能です。</span></div>
-              </div>
-
-              <div class="eq-detail" id="d4">
-                <div class="eq-target">選択中の設備<strong>④ 空調室内機</strong></div>
-                <span class="badge red" id="badge4">保証期限切れ間近</span>
-                <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code4">P-3007</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install4">2016-09</div></div>
-                  <div class="eq-item danger" id="warrantyItem4"><div class="k">保証期間</div><div class="v" id="warranty4">2026-07まで</div></div>
-                  <div class="eq-item danger" id="nextItem4"><div class="k">次回交換目安</div><div class="v" id="next4">残り約2週間</div></div>
-                </div>
-                <div class="callout"><span class="dot">→</span><span>危険度の高い設備は本部側に通知が送られる想定です。</span></div>
-              </div>
-
-              <div class="eq-detail" id="d5">
-                <div class="eq-target">選択中の設備<strong>⑤ 看板</strong></div>
-                <span class="badge" id="badge5">稼働中</span>
-                <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code5">P-4410</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install5">2023-03</div></div>
-                  <div class="eq-item" id="warrantyItem5"><div class="k">保証期間</div><div class="v" id="warranty5">2027-03まで</div></div>
-                  <div class="eq-item" id="nextItem5"><div class="k">次回交換目安</div><div class="v" id="next5">2030年頃</div></div>
-                </div>
-                <div class="callout"><span class="dot">→</span><span>写真・設置図面などの添付ファイル表示も拡張案として想定されます。</span></div>
-              </div>
-
-            </div>
+            <div class="mock-body" id="eqDetailArea"></div>
           </div>
         </div>
       </div>
@@ -816,40 +721,105 @@
   ];
 
   var EQUIPMENT = [
-    { branch:"BR-01", code:"P-0512", name:"レジシステム", location:"レジ", install:"2022-04", warranty:"2027-03", next:"2028年頃", status:"稼働中", alert:null },
-    { branch:"BR-01", code:"P-2201", name:"冷蔵ケース", location:"売場", install:"2018-06", warranty:"2026-08", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn" },
-    { branch:"BR-01", code:"P-1830", name:"什器棚", location:"売場", install:"2021-11", warranty:"2026-11", next:"2029年頃", status:"稼働中", alert:null },
-    { branch:"BR-01", code:"P-3007", name:"空調室内機", location:"バックヤード", install:"2016-09", warranty:"2026-07", next:"残り約2週間", status:"保証期限切れ間近", alert:"danger" },
-    { branch:"BR-01", code:"P-4410", name:"看板", location:"エントランス", install:"2023-03", warranty:"2027-03", next:"2030年頃", status:"稼働中", alert:null },
+    // ---- BR-01 渋谷店 ----
+    { branch:"BR-01", code:"P-0512", name:"レジシステム", location:"レジ", install:"2022-04", warranty:"2027-03", next:"2028年頃", status:"稼働中", alert:null, pos:{top:9, left:32} },
+    { branch:"BR-01", code:"P-2201", name:"冷蔵ケース", location:"売場", install:"2018-06", warranty:"2026-08", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn", pos:{top:38, left:15} },
+    { branch:"BR-01", code:"P-1830", name:"什器棚", location:"売場", install:"2021-11", warranty:"2026-11", next:"2029年頃", status:"稼働中", alert:null, pos:{top:38, left:45} },
+    { branch:"BR-01", code:"P-3007", name:"空調室内機", location:"バックヤード", install:"2016-09", warranty:"2026-07", next:"残り約2週間", status:"保証期限切れ間近", alert:"danger", pos:{top:40, left:84} },
+    { branch:"BR-01", code:"P-4410", name:"看板", location:"エントランス", install:"2023-03", warranty:"2027-03", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:9} },
+    { branch:"BR-01", code:"P-5001", name:"POS端末", location:"レジ", install:"2021-06", warranty:"2026-06", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn", pos:{top:9, left:40} },
+    { branch:"BR-01", code:"P-5010", name:"防犯カメラ", location:"エントランス", install:"2019-08", warranty:"2027-08", next:"2030年頃", status:"稼働中", alert:null, pos:{top:14, left:16} },
+    { branch:"BR-01", code:"P-5020", name:"デジタルサイネージ", location:"エントランス", install:"2022-12", warranty:"2027-12", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:20} },
+    { branch:"BR-01", code:"P-5030", name:"商品陳列棚", location:"売場", install:"2020-02", warranty:"2027-02", next:"2029年頃", status:"稼働中", alert:null, pos:{top:55, left:25} },
+    { branch:"BR-01", code:"P-5040", name:"ショーケース", location:"売場", install:"2017-05", warranty:"2025-05", next:"交換要検討", status:"要点検", alert:"danger", pos:{top:65, left:50} },
 
-    { branch:"BR-02", code:"P-0520", name:"レジシステム", location:"レジ", install:"2021-09", warranty:"2026-09", next:"2028年頃", status:"稼働中", alert:null },
-    { branch:"BR-02", code:"P-2198", name:"冷蔵ケース", location:"売場", install:"2019-02", warranty:"2026-08", next:"残り約45日", status:"交換時期接近", alert:"warn" },
-    { branch:"BR-02", code:"P-1845", name:"什器棚", location:"売場", install:"2020-05", warranty:"2027-05", next:"2029年頃", status:"稼働中", alert:null },
-    { branch:"BR-02", code:"P-3015", name:"空調室内機", location:"バックヤード", install:"2019-11", warranty:"2027-11", next:"2030年頃", status:"稼働中", alert:null },
-    { branch:"BR-02", code:"P-4422", name:"看板", location:"エントランス", install:"2022-08", warranty:"2027-08", next:"2030年頃", status:"稼働中", alert:null },
+    // ---- BR-02 新宿店 ----
+    { branch:"BR-02", code:"P-5101", name:"充電ステーション", location:"売場", install:"2022-09", warranty:"2027-09", next:"2030年頃", status:"稼働中", alert:null, pos:{top:20, left:15} },
+    { branch:"BR-02", code:"P-5110", name:"Wi-Fiルーター", location:"バックヤード", install:"2021-03", warranty:"2026-03", next:"残り約60日", status:"交換時期接近", alert:"warn", pos:{top:75, left:10} },
+    { branch:"BR-02", code:"P-5120", name:"プリンター", location:"バックヤード", install:"2020-07", warranty:"2025-07", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:75, left:30} },
+    { branch:"BR-02", code:"P-5130", name:"電話機", location:"レジ", install:"2019-01", warranty:"2026-01", next:"2028年頃", status:"稼働中", alert:null, pos:{top:28, left:80} },
+    { branch:"BR-02", code:"P-5140", name:"応接テーブル", location:"バックヤード", install:"2018-10", warranty:"2028-10", next:"2031年頃", status:"稼働中", alert:null, pos:{top:75, left:50} },
+    { branch:"BR-02", code:"P-5150", name:"応接チェア", location:"バックヤード", install:"2018-10", warranty:"2028-10", next:"2031年頃", status:"稼働中", alert:null, pos:{top:75, left:70} },
+    { branch:"BR-02", code:"P-5160", name:"カウンターデスク", location:"レジ", install:"2022-02", warranty:"2029-02", next:"2032年頃", status:"稼働中", alert:null, pos:{top:12, left:80} },
+    { branch:"BR-02", code:"P-5170", name:"パーテーション", location:"売場", install:"2021-05", warranty:"2028-05", next:"2031年頃", status:"稼働中", alert:null, pos:{top:20, left:45} },
+    { branch:"BR-02", code:"P-5180", name:"LED照明", location:"売場", install:"2023-01", warranty:"2030-01", next:"2033年頃", status:"稼働中", alert:null, pos:{top:45, left:30} },
+    { branch:"BR-02", code:"P-5190", name:"非常灯", location:"エントランス", install:"2016-04", warranty:"2026-04", next:"残り約15日", status:"保証期限切れ間近", alert:"danger", pos:{top:10, left:82} },
 
-    { branch:"BR-03", code:"P-0533", name:"レジシステム", location:"レジ", install:"2020-03", warranty:"2025-03", next:"更新要検討", status:"要点検", alert:"warn" },
-    { branch:"BR-03", code:"P-2210", name:"冷蔵ケース", location:"売場", install:"2022-01", warranty:"2027-01", next:"2029年頃", status:"稼働中", alert:null },
-    { branch:"BR-03", code:"P-1830", name:"什器棚", location:"売場", install:"2017-08", warranty:"2026-11", next:"残り約116日", status:"稼働中", alert:null },
-    { branch:"BR-03", code:"P-3020", name:"空調室内機", location:"バックヤード", install:"2015-06", warranty:"2025-06", next:"交換要検討", status:"要点検", alert:"danger" },
-    { branch:"BR-03", code:"P-4430", name:"看板", location:"エントランス", install:"2021-12", warranty:"2026-12", next:"2029年頃", status:"稼働中", alert:null },
+    // ---- BR-03 横浜店 ----
+    { branch:"BR-03", code:"P-5201", name:"消火器", location:"バックヤード", install:"2020-11", warranty:"2025-11", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:15, left:70} },
+    { branch:"BR-03", code:"P-5210", name:"AED", location:"レジ", install:"2021-08", warranty:"2028-08", next:"2031年頃", status:"稼働中", alert:null, pos:{top:55, left:75} },
+    { branch:"BR-03", code:"P-5220", name:"自動ドア", location:"エントランス", install:"2017-02", warranty:"2026-02", next:"残り約40日", status:"交換時期接近", alert:"warn", pos:{top:9, left:45} },
+    { branch:"BR-03", code:"P-5230", name:"シャッター", location:"エントランス", install:"2015-09", warranty:"2025-09", next:"交換要検討", status:"要点検", alert:"danger", pos:{top:9, left:55} },
+    { branch:"BR-03", code:"P-5240", name:"給湯器", location:"バックヤード", install:"2019-06", warranty:"2027-06", next:"2030年頃", status:"稼働中", alert:null, pos:{top:30, left:70} },
+    { branch:"BR-03", code:"P-5250", name:"換気扇", location:"バックヤード", install:"2018-03", warranty:"2026-03", next:"2029年頃", status:"稼働中", alert:null, pos:{top:30, left:85} },
+    { branch:"BR-03", code:"P-5260", name:"監視モニター", location:"レジ", install:"2022-04", warranty:"2027-04", next:"2030年頃", status:"稼働中", alert:null, pos:{top:70, left:90} },
+    { branch:"BR-03", code:"P-5270", name:"ネットワークハブ", location:"バックヤード", install:"2021-12", warranty:"2026-12", next:"2029年頃", status:"稼働中", alert:null, pos:{top:15, left:85} },
+    { branch:"BR-03", code:"P-5280", name:"サーバーラック", location:"バックヤード", install:"2020-05", warranty:"2027-05", next:"2030年頃", status:"稼働中", alert:null, pos:{top:30, left:78} },
+    { branch:"BR-03", code:"P-5290", name:"UPS電源装置", location:"バックヤード", install:"2019-09", warranty:"2024-09", next:"更新要検討", status:"要点検", alert:"danger", pos:{top:15, left:78} },
 
-    { branch:"BR-04", code:"P-0541", name:"レジシステム", location:"レジ", install:"2023-01", warranty:"2028-01", next:"2031年頃", status:"稼働中", alert:null },
-    { branch:"BR-04", code:"P-2220", name:"冷蔵ケース", location:"売場", install:"2021-07", warranty:"2026-07", next:"残り約20日", status:"保証期限切れ間近", alert:"danger" },
-    { branch:"BR-04", code:"P-1850", name:"什器棚", location:"売場", install:"2022-02", warranty:"2027-02", next:"2029年頃", status:"稼働中", alert:null },
-    { branch:"BR-04", code:"P-3030", name:"空調室内機", location:"バックヤード", install:"2020-10", warranty:"2028-10", next:"2031年頃", status:"稼働中", alert:null },
-    { branch:"BR-04", code:"P-4440", name:"看板", location:"エントランス", install:"2023-06", warranty:"2028-06", next:"2031年頃", status:"稼働中", alert:null },
+    // ---- BR-04 池袋店 ----
+    { branch:"BR-04", code:"P-5301", name:"ラベルプリンター", location:"レジ", install:"2022-06", warranty:"2027-06", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:9} },
+    { branch:"BR-04", code:"P-5310", name:"バーコードリーダー", location:"レジ", install:"2021-10", warranty:"2026-10", next:"2029年頃", status:"稼働中", alert:null, pos:{top:14, left:9} },
+    { branch:"BR-04", code:"P-5320", name:"タブレット端末", location:"売場", install:"2023-02", warranty:"2026-02", next:"残り約50日", status:"交換時期接近", alert:"warn", pos:{top:20, left:35} },
+    { branch:"BR-04", code:"P-5330", name:"デモ機展示台", location:"売場", install:"2020-08", warranty:"2027-08", next:"2030年頃", status:"稼働中", alert:null, pos:{top:40, left:50} },
+    { branch:"BR-04", code:"P-5340", name:"スマホスタンド", location:"売場", install:"2022-01", warranty:"2027-01", next:"2030年頃", status:"稼働中", alert:null, pos:{top:60, left:35} },
+    { branch:"BR-04", code:"P-5350", name:"ケーブル収納ボックス", location:"バックヤード", install:"2019-04", warranty:"2026-04", next:"2029年頃", status:"稼働中", alert:null, pos:{top:25, left:82} },
+    { branch:"BR-04", code:"P-5360", name:"清掃用ロッカー", location:"バックヤード", install:"2018-07", warranty:"2025-07", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:40, left:82} },
+    { branch:"BR-04", code:"P-5370", name:"ゴミ箱", location:"バックヤード", install:"2021-11", warranty:"2028-11", next:"2031年頃", status:"稼働中", alert:null, pos:{top:55, left:82} },
+    { branch:"BR-04", code:"P-5380", name:"傘立て", location:"エントランス", install:"2020-03", warranty:"2027-03", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:80} },
+    { branch:"BR-04", code:"P-5390", name:"靴箱", location:"エントランス", install:"2017-12", warranty:"2025-12", next:"残り約10日", status:"保証期限切れ間近", alert:"danger", pos:{top:14, left:88} },
 
-    { branch:"BR-05", code:"P-0552", name:"レジシステム", location:"レジ", install:"2019-11", warranty:"2024-11", next:"更新要検討", status:"要点検", alert:"warn" },
-    { branch:"BR-05", code:"P-2230", name:"冷蔵ケース", location:"売場", install:"2020-09", warranty:"2025-09", next:"残り約60日", status:"交換時期接近", alert:"warn" },
-    { branch:"BR-05", code:"P-1860", name:"什器棚", location:"売場", install:"2021-04", warranty:"2026-04", next:"2028年頃", status:"稼働中", alert:null },
-    { branch:"BR-05", code:"P-3040", name:"空調室内機", location:"バックヤード", install:"2018-12", warranty:"2026-12", next:"2029年頃", status:"稼働中", alert:null },
-    { branch:"BR-05", code:"P-4450", name:"看板", location:"エントランス", install:"2022-10", warranty:"2027-10", next:"2030年頃", status:"稼働中", alert:null }
+    // ---- BR-05 秋葉原店 ----
+    { branch:"BR-05", code:"P-5401", name:"休憩室テーブル", location:"バックヤード", install:"2019-05", warranty:"2026-05", next:"2029年頃", status:"稼働中", alert:null, pos:{top:10, left:80} },
+    { branch:"BR-05", code:"P-5410", name:"休憩室チェア", location:"バックヤード", install:"2019-05", warranty:"2026-05", next:"2029年頃", status:"稼働中", alert:null, pos:{top:20, left:88} },
+    { branch:"BR-05", code:"P-5420", name:"ロッカー", location:"バックヤード", install:"2020-09", warranty:"2027-09", next:"2030年頃", status:"稼働中", alert:null, pos:{top:35, left:80} },
+    { branch:"BR-05", code:"P-5430", name:"金庫", location:"バックヤード", install:"2016-01", warranty:"2026-01", next:"残り約25日", status:"保証期限切れ間近", alert:"danger", pos:{top:50, left:88} },
+    { branch:"BR-05", code:"P-5440", name:"シュレッダー", location:"バックヤード", install:"2021-07", warranty:"2026-07", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn", pos:{top:65, left:80} },
+    { branch:"BR-05", code:"P-5450", name:"コピー機", location:"バックヤード", install:"2020-12", warranty:"2025-12", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:78, left:88} },
+    { branch:"BR-05", code:"P-5460", name:"ホワイトボード", location:"バックヤード", install:"2018-06", warranty:"2028-06", next:"2031年頃", status:"稼働中", alert:null, pos:{top:10, left:95} },
+    { branch:"BR-05", code:"P-5470", name:"掲示板", location:"エントランス", install:"2022-03", warranty:"2029-03", next:"2032年頃", status:"稼働中", alert:null, pos:{top:75, left:12} },
+    { branch:"BR-05", code:"P-5480", name:"時計", location:"レジ", install:"2021-01", warranty:"2031-01", next:"2034年頃", status:"稼働中", alert:null, pos:{top:75, left:55} },
+    { branch:"BR-05", code:"P-5490", name:"加湿器", location:"売場", install:"2022-10", warranty:"2027-10", next:"2030年頃", status:"稼働中", alert:null, pos:{top:20, left:40} }
   ];
+
+  // ---- 店舗ごとに異なるフロアレイアウト(ゾーン配置のバリエーション) ----
+  var STORE_LAYOUTS = {
+    "BR-01": { zones:[
+      { label:"エントランス", top:4, left:3, width:20, height:16 },
+      { label:"レジ", top:4, left:26, width:22, height:16 },
+      { label:"売場", top:24, left:3, width:66, height:58, shade:true },
+      { label:"バックヤード", top:4, left:75, width:22, height:78 }
+    ]},
+    "BR-02": { zones:[
+      { label:"エントランス", top:4, left:75, width:22, height:16 },
+      { label:"レジ", top:22, left:75, width:22, height:16 },
+      { label:"売場", top:4, left:3, width:68, height:58, shade:true },
+      { label:"バックヤード", top:66, left:3, width:94, height:30 }
+    ]},
+    "BR-03": { zones:[
+      { label:"エントランス", top:4, left:38, width:24, height:14 },
+      { label:"バックヤード", top:4, left:64, width:33, height:40 },
+      { label:"売場", top:20, left:3, width:33, height:74, shade:true },
+      { label:"レジ", top:46, left:64, width:33, height:34 }
+    ]},
+    "BR-04": { zones:[
+      { label:"エントランス", top:4, left:3, width:18, height:14 },
+      { label:"レジ", top:4, left:79, width:18, height:14 },
+      { label:"バックヤード", top:20, left:79, width:18, height:70 },
+      { label:"売場", top:4, left:23, width:54, height:86, shade:true }
+    ]},
+    "BR-05": { zones:[
+      { label:"売場", top:4, left:3, width:68, height:56, shade:true },
+      { label:"バックヤード", top:4, left:75, width:22, height:90 },
+      { label:"エントランス", top:64, left:3, width:32, height:30 },
+      { label:"レジ", top:64, left:39, width:32, height:30 }
+    ]}
+  };
 
   var ALERT_LABEL = { warn:"警告", danger:"危険" };
   var BRANCH_NAME = {};
   BRANCHES.forEach(function(b){ BRANCH_NAME[b.code] = b.name; });
+  var CIRCLE_NUM = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
 
   // ---- グローバル店舗選択(タブ①②に連動) ----
   var globalStoreSelect = document.getElementById('globalStoreSelect');
@@ -857,24 +827,55 @@
     return '<option value="' + b.code + '">' + b.name + '</option>';
   }).join('');
 
-  // ---- タブ①: 店舗レイアウト図(選択店舗の設備情報を反映) ----
+  // ---- タブ①: 店舗レイアウト図(店舗ごとに配置・件数が異なる) ----
   var BADGE_CLASS = { warn:"badge gold", danger:"badge red" };
   var ITEM_CLASS = { warn:"eq-item warn", danger:"eq-item danger" };
+  var floorplanArea = document.getElementById('floorplanArea');
+  var eqDetailArea = document.getElementById('eqDetailArea');
+
+  function renderFloorPlanDetail(items, idx){
+    var e = items[idx];
+    var badgeClass = e.alert ? BADGE_CLASS[e.alert] : 'badge';
+    var itemClass = e.alert ? ITEM_CLASS[e.alert] : 'eq-item';
+    eqDetailArea.innerHTML =
+      '<div class="eq-detail">' +
+        '<div class="eq-target">選択中の設備<strong>' + CIRCLE_NUM[idx] + ' ' + e.name + '</strong></div>' +
+        '<span class="' + badgeClass + '">' + e.status + '</span>' +
+        '<div class="eq-grid">' +
+          '<div class="eq-item"><div class="k">品番</div><div class="v">' + e.code + '</div></div>' +
+          '<div class="eq-item"><div class="k">導入年月</div><div class="v">' + e.install + '</div></div>' +
+          '<div class="' + itemClass + '"><div class="k">保証期間</div><div class="v">' + e.warranty + 'まで</div></div>' +
+          '<div class="' + itemClass + '"><div class="k">次回交換目安</div><div class="v">' + e.next + '</div></div>' +
+        '</div>' +
+        '<div class="callout"><span class="dot">→</span><span>設置場所: ' + e.location + '。スプレッドシート台帳の情報を、店舗コード・設備IDに紐付けて表示する想定です。</span></div>' +
+      '</div>';
+
+    floorplanArea.querySelectorAll('.fp-marker').forEach(function(m){
+      m.classList.toggle('active-marker', Number(m.getAttribute('data-idx')) === idx);
+    });
+  }
 
   function renderFloorPlan(branchCode){
     document.getElementById('fpBranchName').textContent = BRANCH_NAME[branchCode];
+    var layout = STORE_LAYOUTS[branchCode];
     var items = EQUIPMENT.filter(function(e){ return e.branch === branchCode; });
-    items.forEach(function(e, idx){
-      var i = idx + 1;
-      document.getElementById('badge' + i).className = e.alert ? BADGE_CLASS[e.alert] : 'badge';
-      document.getElementById('badge' + i).textContent = e.status;
-      document.getElementById('code' + i).textContent = e.code;
-      document.getElementById('install' + i).textContent = e.install;
-      document.getElementById('warranty' + i).textContent = e.warranty + 'まで';
-      document.getElementById('warrantyItem' + i).className = e.alert ? ITEM_CLASS[e.alert] : 'eq-item';
-      document.getElementById('next' + i).textContent = e.next;
-      document.getElementById('nextItem' + i).className = e.alert ? ITEM_CLASS[e.alert] : 'eq-item';
+
+    var zonesHtml = layout.zones.map(function(z){
+      return '<div class="fp-zone" style="top:' + z.top + '%; left:' + z.left + '%; width:' + z.width + '%; height:' + z.height + '%;' +
+        (z.shade ? ' background:#FBFCFC;' : '') + '">' + z.label + '</div>';
+    }).join('');
+
+    var markersHtml = items.map(function(e, idx){
+      return '<div class="fp-marker" data-idx="' + idx + '" tabindex="0" style="top:' + e.pos.top + '%; left:' + e.pos.left + '%;">' + (idx + 1) + '</div>';
+    }).join('');
+
+    floorplanArea.innerHTML = zonesHtml + markersHtml;
+
+    floorplanArea.querySelectorAll('.fp-marker').forEach(function(m){
+      m.addEventListener('click', function(){ renderFloorPlanDetail(items, Number(m.getAttribute('data-idx'))); });
     });
+
+    renderFloorPlanDetail(items, 0);
   }
 
   // ---- タブ②: 店舗設備一覧 ----
