@@ -181,9 +181,7 @@
     border-radius:0 0 6px 6px;
   }
   #tab1:checked ~ .tabset label[for="tab1"],
-  #tab2:checked ~ .tabset label[for="tab2"],
-  #tab3:checked ~ .tabset label[for="tab3"],
-  #tab4:checked ~ .tabset label[for="tab4"]{
+  #tab2:checked ~ .tabset label[for="tab2"]{
     color:var(--teal-deep);
     background:var(--surface);
     border-color:var(--line);
@@ -191,8 +189,96 @@
   }
   #tab1:checked ~ .panels #panel1{display:block;}
   #tab2:checked ~ .panels #panel2{display:block;}
-  #tab3:checked ~ .panels #panel3{display:block;}
-  #tab4:checked ~ .panels #panel4{display:block;}
+
+  /* ---- Floating widgets (alerts / chatbot) ---- */
+  .fab-stack{
+    position:fixed;
+    right:24px;
+    bottom:24px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:12px;
+    z-index:100;
+  }
+  .fab{
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    border:none;
+    background:var(--teal-deep);
+    color:#fff;
+    font-size:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(15,64,56,.28);
+    position:relative;
+  }
+  .fab:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+  .fab-badge{
+    position:absolute;
+    top:-4px;
+    right:-4px;
+    background:var(--red);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    min-width:20px;
+    height:20px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 5px;
+    font-family:var(--font-mono);
+  }
+  .fab-badge:empty{display:none;}
+
+  .popup-panel{
+    position:fixed;
+    right:24px;
+    bottom:88px;
+    width:min(420px, calc(100vw - 48px));
+    max-height:70vh;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    box-shadow:0 8px 28px rgba(15,64,56,.22);
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
+    z-index:100;
+  }
+  .popup-panel.open{display:flex;}
+  .popup-header{
+    background:var(--teal-deep);
+    color:#EAF1EF;
+    font-size:13px;
+    font-weight:600;
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .popup-min{
+    background:transparent;
+    border:none;
+    color:#EAF1EF;
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    padding:2px 6px;
+  }
+  .popup-min:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+  .popup-body{
+    padding:18px;
+    overflow-y:auto;
+  }
+  #alertPopup .popup-body{padding:14px;}
+  #chatPopup .popup-body{padding:0;}
+  #chatPopup .chat-window{border:none; border-radius:0; max-width:none;}
 
   .screen-note{
     font-size:13px;
@@ -497,13 +583,9 @@
   <div class="tabs">
     <input type="radio" name="tabgroup" id="tab1" checked>
     <input type="radio" name="tabgroup" id="tab2">
-    <input type="radio" name="tabgroup" id="tab3">
-    <input type="radio" name="tabgroup" id="tab4">
     <div class="tabset">
       <label for="tab1">店舗レイアウト図</label>
       <label for="tab2">店舗設備一覧</label>
-      <label for="tab3">交換時期・保証期限アラート</label>
-      <label for="tab4">社内チャットボット</label>
     </div>
 
     <div class="panels">
@@ -624,69 +706,83 @@
         </div>
       </div>
 
-      <!-- Panel 3: Alerts -->
-      <div class="panel" id="panel3">
-        <div class="screen-note">画面イメージ③: 保証期限・交換時期が近づいた設備を、全店舗横断でショップ単位に一覧表示します。通知の元データにもなります。</div>
-
-        <div class="alert-notice">
-          <span class="icon">⚠</span>
-          <div>
-            <strong>アラート通知イメージ(メール/チャット通知)</strong>
-            保証期限まで残り12日:渋谷店 空調室内機(P-3007)。至急、交換要否のご確認をお願いします。
-          </div>
-        </div>
-
-        <div class="table-scroll">
-          <table class="master">
-            <thead>
-              <tr><th>店舗名</th><th>品番</th><th>設備名</th><th>保証期限</th><th>残り目安</th><th>アラート区分</th></tr>
-            </thead>
-            <tbody id="alertTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Panel 4: Chatbot -->
-      <div class="panel" id="panel4">
-        <div class="screen-note">画面イメージ④: 社内向けチャットボットのイメージです。設備情報や社内資料の所在に関する問い合わせに自動で回答します。</div>
-
-        <div class="chat-window">
-          <div class="chat-titlebar"><span class="dot-live"></span>社内サポートボット</div>
-          <div class="chat-body">
-            <div class="msg user">
-              <span class="who">店舗スタッフ</span>
-              <div class="bubble">渋谷店の看板の保証期限を教えてください</div>
-            </div>
-            <div class="msg bot">
-              <span class="who">サポートボット</span>
-              <div class="bubble">渋谷店 看板(品番:P-4410)の保証期限は2027年3月です。現時点でアラートは出ていません。</div>
-              <div class="chat-source">参照元:設備台帳(渋谷店 / P-4410)</div>
-            </div>
-            <div class="msg user">
-              <span class="who">店舗スタッフ</span>
-              <div class="bubble">什器の発注書はどこにありますか</div>
-            </div>
-            <div class="msg bot">
-              <span class="who">サポートボット</span>
-              <div class="bubble">什器の発注書は社内共有ドライブの「設備管理 &gt; 発注書」フォルダにあります。該当フォルダを開きますか?</div>
-              <div class="chat-source">参照元:社内資料インデックス</div>
-            </div>
-          </div>
-          <div class="chat-input">
-            <input type="text" placeholder="質問を入力してください" />
-            <button type="button">送信</button>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <div class="footnote">
     <p><strong>本イメージについて</strong> 上記は貴社の設備管理業務のイメージをすり合わせるための、たたき台としての画面モックです。実際の項目・レイアウト・入力方式は、今後の詳細ヒアリングと技術的な実現可否の確認を踏まえて確定いたします。</p>
-    <p><strong>今後の進め方</strong> まずは設備台帳の一元化とレイアウト図からの確認(タブ①②)を優先してご検討いただき、交換時期アラート(タブ③)と社内チャットボット(タブ④)は運用開始後の拡張フェーズとしてご相談させてください。</p>
+    <p><strong>今後の進め方</strong> まずは設備台帳の一元化とレイアウト図からの確認(タブ①②)を優先してご検討いただき、右下のポップアップ(交換時期アラート・社内チャットボット)は運用開始後の拡張フェーズとしてご相談させてください。</p>
   </div>
 
+</div>
+
+<!-- Floating widgets: Alerts / Chatbot (どのタブからでも開閉できるポップアップ) -->
+<div class="fab-stack">
+  <button type="button" class="fab" id="alertFab" aria-label="交換時期・保証期限アラートを開く">
+    ⚠<span class="fab-badge" id="alertBadge"></span>
+  </button>
+  <button type="button" class="fab" id="chatFab" aria-label="社内チャットボットを開く">💬</button>
+</div>
+
+<div class="popup-panel" id="alertPopup">
+  <div class="popup-header">
+    <span>交換時期・保証期限アラート(全店舗横断)</span>
+    <button type="button" class="popup-min" data-target="alertPopup" aria-label="最小化">－</button>
+  </div>
+  <div class="popup-body">
+    <div class="alert-notice">
+      <span class="icon">⚠</span>
+      <div>
+        <strong>アラート通知イメージ(メール/チャット通知)</strong>
+        保証期限まで残り12日:渋谷店 空調室内機(P-3007)。至急、交換要否のご確認をお願いします。
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table class="master">
+        <thead>
+          <tr><th>店舗名</th><th>品番</th><th>設備名</th><th>保証期限</th><th>残り目安</th><th>アラート区分</th></tr>
+        </thead>
+        <tbody id="alertTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="popup-panel" id="chatPopup">
+  <div class="popup-header">
+    <span>社内サポートボット</span>
+    <button type="button" class="popup-min" data-target="chatPopup" aria-label="最小化">－</button>
+  </div>
+  <div class="popup-body">
+    <div class="chat-window">
+      <div class="chat-titlebar"><span class="dot-live"></span>社内サポートボット</div>
+      <div class="chat-body">
+        <div class="msg user">
+          <span class="who">店舗スタッフ</span>
+          <div class="bubble">渋谷店の看板の保証期限を教えてください</div>
+        </div>
+        <div class="msg bot">
+          <span class="who">サポートボット</span>
+          <div class="bubble">渋谷店 看板(品番:P-4410)の保証期限は2027年3月です。現時点でアラートは出ていません。</div>
+          <div class="chat-source">参照元:設備台帳(渋谷店 / P-4410)</div>
+        </div>
+        <div class="msg user">
+          <span class="who">店舗スタッフ</span>
+          <div class="bubble">什器の発注書はどこにありますか</div>
+        </div>
+        <div class="msg bot">
+          <span class="who">サポートボット</span>
+          <div class="bubble">什器の発注書は社内共有ドライブの「設備管理 &gt; 発注書」フォルダにあります。該当フォルダを開きますか?</div>
+          <div class="chat-source">参照元:社内資料インデックス</div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" placeholder="質問を入力してください" />
+        <button type="button">送信</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -788,7 +884,7 @@
   eqSearch.addEventListener('input', renderForSelectedStore);
   renderForSelectedStore();
 
-  // ---- タブ③: 交換時期・保証期限アラート ----
+  // ---- 交換時期・保証期限アラート(ポップアップ内) ----
   var alertTableBody = document.getElementById('alertTableBody');
   var alertRows = EQUIPMENT.filter(function(e){ return e.alert; })
     .sort(function(a, b){ return (a.alert === 'danger' ? 0 : 1) - (b.alert === 'danger' ? 0 : 1); });
@@ -797,4 +893,28 @@
     return '<tr class="alert-' + e.alert + '"><td>' + BRANCH_NAME[e.branch] + '</td><td class="mono">' + e.code + '</td><td>' + e.name + '</td>' +
       '<td class="mono">' + e.warranty + '</td><td class="mono">' + e.next + '</td><td>' + ALERT_LABEL[e.alert] + '</td></tr>';
   }).join('');
+
+  document.getElementById('alertBadge').textContent = alertRows.length || '';
+
+  // ---- フローティングポップアップ(アラート/チャットボット)の開閉 ----
+  var popups = {
+    alertFab: document.getElementById('alertPopup'),
+    chatFab: document.getElementById('chatPopup')
+  };
+
+  function togglePopup(fabId){
+    var target = popups[fabId];
+    var willOpen = !target.classList.contains('open');
+    Object.keys(popups).forEach(function(id){ popups[id].classList.remove('open'); });
+    if(willOpen) target.classList.add('open');
+  }
+
+  document.getElementById('alertFab').addEventListener('click', function(){ togglePopup('alertFab'); });
+  document.getElementById('chatFab').addEventListener('click', function(){ togglePopup('chatFab'); });
+
+  document.querySelectorAll('.popup-min').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.getElementById(btn.getAttribute('data-target')).classList.remove('open');
+    });
+  });
 </script>
