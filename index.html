@@ -78,6 +78,33 @@
     font-weight:600;
   }
 
+  /* ---- Global store picker ---- */
+  .store-picker{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--teal-tint);
+    border:1px solid #CFE2DC;
+    border-radius:4px;
+    padding:14px 18px;
+  }
+  .store-picker label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--teal-deep);
+    white-space:nowrap;
+  }
+  .store-picker select{
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:8px 12px;
+    font-family:var(--font-jp);
+    font-size:14px;
+    font-weight:600;
+    background:#fff;
+    min-width:160px;
+  }
+
   /* ---- Before / After ---- */
   .compare{
     display:grid;
@@ -441,6 +468,11 @@
     </div>
   </div>
 
+  <div class="store-picker">
+    <label for="globalStoreSelect">表示する店舗</label>
+    <select id="globalStoreSelect"></select>
+  </div>
+
   <div class="compare">
     <div class="compare-card before">
       <span class="compare-label">現状</span>
@@ -478,7 +510,7 @@
 
       <!-- Panel 1: Floor plan -->
       <div class="panel" id="panel1">
-        <div class="screen-note">画面イメージ①: 店舗レイアウト図上の設備マーカーをクリックすると、右側に該当設備の情報が表示されます。(渋谷店の例)</div>
+        <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替え、レイアウト図上の設備マーカーをクリックすると、右側に該当設備の情報が表示されます。</div>
 
         <div class="floorplan-mock">
           <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m1" checked>
@@ -488,7 +520,7 @@
           <input class="fp-marker-inputs" type="radio" name="eqmarker" id="m5">
 
           <div class="mock-card">
-            <div class="mock-titlebar"><span>店舗レイアウト図</span><span>渋谷店</span></div>
+            <div class="mock-titlebar"><span>店舗レイアウト図</span><span id="fpBranchName">渋谷店</span></div>
             <div class="mock-body">
               <div class="floorplan">
                 <div class="fp-zone entrance">エントランス</div>
@@ -511,60 +543,60 @@
 
               <div class="eq-detail" id="d1">
                 <div class="eq-target">選択中の設備<strong>① レジシステム</strong></div>
-                <span class="badge">稼働中</span>
+                <span class="badge" id="badge1">稼働中</span>
                 <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v">P-0512</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2022-04</div></div>
-                  <div class="eq-item"><div class="k">保証期間</div><div class="v">2027-03まで</div></div>
-                  <div class="eq-item"><div class="k">次回交換目安</div><div class="v">2028年頃</div></div>
+                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code1">P-0512</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install1">2022-04</div></div>
+                  <div class="eq-item" id="warrantyItem1"><div class="k">保証期間</div><div class="v" id="warranty1">2027-03まで</div></div>
+                  <div class="eq-item" id="nextItem1"><div class="k">次回交換目安</div><div class="v" id="next1">2028年頃</div></div>
                 </div>
                 <div class="callout"><span class="dot">→</span><span>スプレッドシート台帳の情報を、店舗コード・設備IDに紐付けて表示する想定です。</span></div>
               </div>
 
               <div class="eq-detail" id="d2">
                 <div class="eq-target">選択中の設備<strong>② 冷蔵ケース</strong></div>
-                <span class="badge gold">交換時期接近</span>
+                <span class="badge gold" id="badge2">交換時期接近</span>
                 <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v">P-2201</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2018-06</div></div>
-                  <div class="eq-item warn"><div class="k">保証期間</div><div class="v">2026-08まで</div></div>
-                  <div class="eq-item warn"><div class="k">次回交換目安</div><div class="v">残り約1ヶ月</div></div>
+                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code2">P-2201</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install2">2018-06</div></div>
+                  <div class="eq-item warn" id="warrantyItem2"><div class="k">保証期間</div><div class="v" id="warranty2">2026-08まで</div></div>
+                  <div class="eq-item warn" id="nextItem2"><div class="k">次回交換目安</div><div class="v" id="next2">残り約1ヶ月</div></div>
                 </div>
                 <div class="callout"><span class="dot">→</span><span>保証期限・交換目安が近い設備は、一覧側にもアラートとして表示されます(タブ③)。</span></div>
               </div>
 
               <div class="eq-detail" id="d3">
-                <div class="eq-target">選択中の設備<strong>③ 什器棚(什器什)</strong></div>
-                <span class="badge">稼働中</span>
+                <div class="eq-target">選択中の設備<strong>③ 什器棚</strong></div>
+                <span class="badge" id="badge3">稼働中</span>
                 <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v">P-1830</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2021-11</div></div>
-                  <div class="eq-item"><div class="k">保証期間</div><div class="v">2026-11まで</div></div>
-                  <div class="eq-item"><div class="k">次回交換目安</div><div class="v">2029年頃</div></div>
+                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code3">P-1830</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install3">2021-11</div></div>
+                  <div class="eq-item" id="warrantyItem3"><div class="k">保証期間</div><div class="v" id="warranty3">2026-11まで</div></div>
+                  <div class="eq-item" id="nextItem3"><div class="k">次回交換目安</div><div class="v" id="next3">2029年頃</div></div>
                 </div>
                 <div class="callout"><span class="dot">→</span><span>設置場所・仕入先などの追加項目も台帳に応じて表示可能です。</span></div>
               </div>
 
               <div class="eq-detail" id="d4">
                 <div class="eq-target">選択中の設備<strong>④ 空調室内機</strong></div>
-                <span class="badge red">保証期限切れ間近</span>
+                <span class="badge red" id="badge4">保証期限切れ間近</span>
                 <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v">P-3007</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2016-09</div></div>
-                  <div class="eq-item danger"><div class="k">保証期間</div><div class="v">2026-07まで</div></div>
-                  <div class="eq-item danger"><div class="k">次回交換目安</div><div class="v">残り約2週間</div></div>
+                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code4">P-3007</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install4">2016-09</div></div>
+                  <div class="eq-item danger" id="warrantyItem4"><div class="k">保証期間</div><div class="v" id="warranty4">2026-07まで</div></div>
+                  <div class="eq-item danger" id="nextItem4"><div class="k">次回交換目安</div><div class="v" id="next4">残り約2週間</div></div>
                 </div>
                 <div class="callout"><span class="dot">→</span><span>危険度の高い設備は本部側に通知が送られる想定です。</span></div>
               </div>
 
               <div class="eq-detail" id="d5">
                 <div class="eq-target">選択中の設備<strong>⑤ 看板</strong></div>
-                <span class="badge">稼働中</span>
+                <span class="badge" id="badge5">稼働中</span>
                 <div class="eq-grid">
-                  <div class="eq-item"><div class="k">品番</div><div class="v">P-4410</div></div>
-                  <div class="eq-item"><div class="k">導入年月</div><div class="v">2023-03</div></div>
-                  <div class="eq-item"><div class="k">保証期間</div><div class="v">2027-03まで</div></div>
-                  <div class="eq-item"><div class="k">次回交換目安</div><div class="v">2030年頃</div></div>
+                  <div class="eq-item"><div class="k">品番</div><div class="v" id="code5">P-4410</div></div>
+                  <div class="eq-item"><div class="k">導入年月</div><div class="v" id="install5">2023-03</div></div>
+                  <div class="eq-item" id="warrantyItem5"><div class="k">保証期間</div><div class="v" id="warranty5">2027-03まで</div></div>
+                  <div class="eq-item" id="nextItem5"><div class="k">次回交換目安</div><div class="v" id="next5">2030年頃</div></div>
                 </div>
                 <div class="callout"><span class="dot">→</span><span>写真・設置図面などの添付ファイル表示も拡張案として想定されます。</span></div>
               </div>
@@ -579,7 +611,6 @@
         <div class="screen-note">画面イメージ②: 店舗を選択すると、その店舗の設備台帳が一覧表示されます。スプレッドシートを開かずに検索・確認できます。</div>
 
         <div class="table-toolbar">
-          <select id="branchSelect"></select>
           <input type="text" id="eqSearch" placeholder="品番・設備名で検索" value="" />
         </div>
 
@@ -704,17 +735,37 @@
   var BRANCH_NAME = {};
   BRANCHES.forEach(function(b){ BRANCH_NAME[b.code] = b.name; });
 
-  // ---- タブ②: 店舗設備一覧 ----
-  var branchSelect = document.getElementById('branchSelect');
-  branchSelect.innerHTML = BRANCHES.map(function(b){
+  // ---- グローバル店舗選択(タブ①②に連動) ----
+  var globalStoreSelect = document.getElementById('globalStoreSelect');
+  globalStoreSelect.innerHTML = BRANCHES.map(function(b){
     return '<option value="' + b.code + '">' + b.name + '</option>';
   }).join('');
 
+  // ---- タブ①: 店舗レイアウト図(選択店舗の設備情報を反映) ----
+  var BADGE_CLASS = { warn:"badge gold", danger:"badge red" };
+  var ITEM_CLASS = { warn:"eq-item warn", danger:"eq-item danger" };
+
+  function renderFloorPlan(branchCode){
+    document.getElementById('fpBranchName').textContent = BRANCH_NAME[branchCode];
+    var items = EQUIPMENT.filter(function(e){ return e.branch === branchCode; });
+    items.forEach(function(e, idx){
+      var i = idx + 1;
+      document.getElementById('badge' + i).className = e.alert ? BADGE_CLASS[e.alert] : 'badge';
+      document.getElementById('badge' + i).textContent = e.status;
+      document.getElementById('code' + i).textContent = e.code;
+      document.getElementById('install' + i).textContent = e.install;
+      document.getElementById('warranty' + i).textContent = e.warranty + 'まで';
+      document.getElementById('warrantyItem' + i).className = e.alert ? ITEM_CLASS[e.alert] : 'eq-item';
+      document.getElementById('next' + i).textContent = e.next;
+      document.getElementById('nextItem' + i).className = e.alert ? ITEM_CLASS[e.alert] : 'eq-item';
+    });
+  }
+
+  // ---- タブ②: 店舗設備一覧 ----
   var eqSearch = document.getElementById('eqSearch');
   var eqTableBody = document.getElementById('eqTableBody');
 
-  function renderEquipmentTable(){
-    var branchCode = branchSelect.value;
+  function renderEquipmentTable(branchCode){
     var q = eqSearch.value.trim().toLowerCase();
     var rows = EQUIPMENT.filter(function(e){ return e.branch === branchCode; });
     if(q){
@@ -727,9 +778,15 @@
     }).join('');
   }
 
-  branchSelect.addEventListener('change', renderEquipmentTable);
-  eqSearch.addEventListener('input', renderEquipmentTable);
-  renderEquipmentTable();
+  function renderForSelectedStore(){
+    var branchCode = globalStoreSelect.value;
+    renderFloorPlan(branchCode);
+    renderEquipmentTable(branchCode);
+  }
+
+  globalStoreSelect.addEventListener('change', renderForSelectedStore);
+  eqSearch.addEventListener('input', renderForSelectedStore);
+  renderForSelectedStore();
 
   // ---- タブ③: 交換時期・保証期限アラート ----
   var alertTableBody = document.getElementById('alertTableBody');
