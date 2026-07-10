@@ -276,6 +276,7 @@
     padding:18px;
     overflow-y:auto;
   }
+  #alertPopup{width:min(680px, calc(100vw - 48px));}
   #alertPopup .popup-body{padding:14px;}
   #chatPopup .popup-body{padding:0;}
   #chatPopup .chat-window{border:none; border-radius:0; max-width:none;}
@@ -741,7 +742,7 @@
     <div class="table-scroll">
       <table class="master">
         <thead>
-          <tr><th>店舗名</th><th>品番</th><th>設備名</th><th>保証期限</th><th>残り目安</th><th>アラート区分</th></tr>
+          <tr><th>店舗名</th><th>品番</th><th>設備名</th><th>設置場所</th><th>導入年月</th><th>保証期限</th><th>残り目安</th><th>ステータス</th><th>アラート区分</th></tr>
         </thead>
         <tbody id="alertTableBody"></tbody>
       </table>
@@ -891,7 +892,8 @@
 
   alertTableBody.innerHTML = alertRows.map(function(e){
     return '<tr class="alert-' + e.alert + '"><td>' + BRANCH_NAME[e.branch] + '</td><td class="mono">' + e.code + '</td><td>' + e.name + '</td>' +
-      '<td class="mono">' + e.warranty + '</td><td class="mono">' + e.next + '</td><td>' + ALERT_LABEL[e.alert] + '</td></tr>';
+      '<td>' + e.location + '</td><td class="mono">' + e.install + '</td><td class="mono">' + e.warranty + '</td><td class="mono">' + e.next + '</td>' +
+      '<td>' + e.status + '</td><td>' + ALERT_LABEL[e.alert] + '</td></tr>';
   }).join('');
 
   document.getElementById('alertBadge').textContent = alertRows.length || '';
