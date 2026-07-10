@@ -710,77 +710,39 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-  // ---- サンプルマスタデータ(支店・備品) ----
-  var BRANCHES = [
-    { code:"BR-01", name:"渋谷店" },
-    { code:"BR-02", name:"新宿店" },
-    { code:"BR-03", name:"横浜店" },
-    { code:"BR-04", name:"池袋店" },
-    { code:"BR-05", name:"秋葉原店" }
-  ];
+  // ---- Supabase接続(支店・備品マスタ) ----
+  var supabaseClient = supabase.createClient(
+    "https://reanxqaocyicvgozyoif.supabase.co",
+    "sb_publishable_I14-5Z6rShH4_d0ndpXoEw_7dAiPMvr"
+  );
 
-  var EQUIPMENT = [
-    // ---- BR-01 渋谷店 ----
-    { branch:"BR-01", code:"P-0512", name:"レジシステム", location:"レジ", install:"2022-04", warranty:"2027-03", next:"2028年頃", status:"稼働中", alert:null, pos:{top:9, left:32} },
-    { branch:"BR-01", code:"P-2201", name:"冷蔵ケース", location:"売場", install:"2018-06", warranty:"2026-08", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn", pos:{top:38, left:15} },
-    { branch:"BR-01", code:"P-1830", name:"什器棚", location:"売場", install:"2021-11", warranty:"2026-11", next:"2029年頃", status:"稼働中", alert:null, pos:{top:38, left:45} },
-    { branch:"BR-01", code:"P-3007", name:"空調室内機", location:"バックヤード", install:"2016-09", warranty:"2026-07", next:"残り約2週間", status:"保証期限切れ間近", alert:"danger", pos:{top:40, left:84} },
-    { branch:"BR-01", code:"P-4410", name:"看板", location:"エントランス", install:"2023-03", warranty:"2027-03", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:9} },
-    { branch:"BR-01", code:"P-5001", name:"POS端末", location:"レジ", install:"2021-06", warranty:"2026-06", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn", pos:{top:9, left:40} },
-    { branch:"BR-01", code:"P-5010", name:"防犯カメラ", location:"エントランス", install:"2019-08", warranty:"2027-08", next:"2030年頃", status:"稼働中", alert:null, pos:{top:14, left:16} },
-    { branch:"BR-01", code:"P-5020", name:"デジタルサイネージ", location:"エントランス", install:"2022-12", warranty:"2027-12", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:20} },
-    { branch:"BR-01", code:"P-5030", name:"商品陳列棚", location:"売場", install:"2020-02", warranty:"2027-02", next:"2029年頃", status:"稼働中", alert:null, pos:{top:55, left:25} },
-    { branch:"BR-01", code:"P-5040", name:"ショーケース", location:"売場", install:"2017-05", warranty:"2025-05", next:"交換要検討", status:"要点検", alert:"danger", pos:{top:65, left:50} },
+  var BRANCHES = [];
+  var EQUIPMENT = [];
 
-    // ---- BR-02 新宿店 ----
-    { branch:"BR-02", code:"P-5101", name:"充電ステーション", location:"売場", install:"2022-09", warranty:"2027-09", next:"2030年頃", status:"稼働中", alert:null, pos:{top:20, left:15} },
-    { branch:"BR-02", code:"P-5110", name:"Wi-Fiルーター", location:"バックヤード", install:"2021-03", warranty:"2026-03", next:"残り約60日", status:"交換時期接近", alert:"warn", pos:{top:75, left:10} },
-    { branch:"BR-02", code:"P-5120", name:"プリンター", location:"バックヤード", install:"2020-07", warranty:"2025-07", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:75, left:30} },
-    { branch:"BR-02", code:"P-5130", name:"電話機", location:"レジ", install:"2019-01", warranty:"2026-01", next:"2028年頃", status:"稼働中", alert:null, pos:{top:28, left:80} },
-    { branch:"BR-02", code:"P-5140", name:"応接テーブル", location:"バックヤード", install:"2018-10", warranty:"2028-10", next:"2031年頃", status:"稼働中", alert:null, pos:{top:75, left:50} },
-    { branch:"BR-02", code:"P-5150", name:"応接チェア", location:"バックヤード", install:"2018-10", warranty:"2028-10", next:"2031年頃", status:"稼働中", alert:null, pos:{top:75, left:70} },
-    { branch:"BR-02", code:"P-5160", name:"カウンターデスク", location:"レジ", install:"2022-02", warranty:"2029-02", next:"2032年頃", status:"稼働中", alert:null, pos:{top:12, left:80} },
-    { branch:"BR-02", code:"P-5170", name:"パーテーション", location:"売場", install:"2021-05", warranty:"2028-05", next:"2031年頃", status:"稼働中", alert:null, pos:{top:20, left:45} },
-    { branch:"BR-02", code:"P-5180", name:"LED照明", location:"売場", install:"2023-01", warranty:"2030-01", next:"2033年頃", status:"稼働中", alert:null, pos:{top:45, left:30} },
-    { branch:"BR-02", code:"P-5190", name:"非常灯", location:"エントランス", install:"2016-04", warranty:"2026-04", next:"残り約15日", status:"保証期限切れ間近", alert:"danger", pos:{top:10, left:82} },
+  async function loadEquipmentData(){
+    var branchRes = await supabaseClient.from('branches').select('*').order('id');
+    var eqRes = await supabaseClient.from('equipment').select('*').order('id');
+    if(branchRes.error) throw branchRes.error;
+    if(eqRes.error) throw eqRes.error;
 
-    // ---- BR-03 横浜店 ----
-    { branch:"BR-03", code:"P-5201", name:"消火器", location:"バックヤード", install:"2020-11", warranty:"2025-11", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:15, left:70} },
-    { branch:"BR-03", code:"P-5210", name:"AED", location:"レジ", install:"2021-08", warranty:"2028-08", next:"2031年頃", status:"稼働中", alert:null, pos:{top:55, left:75} },
-    { branch:"BR-03", code:"P-5220", name:"自動ドア", location:"エントランス", install:"2017-02", warranty:"2026-02", next:"残り約40日", status:"交換時期接近", alert:"warn", pos:{top:9, left:45} },
-    { branch:"BR-03", code:"P-5230", name:"シャッター", location:"エントランス", install:"2015-09", warranty:"2025-09", next:"交換要検討", status:"要点検", alert:"danger", pos:{top:9, left:55} },
-    { branch:"BR-03", code:"P-5240", name:"給湯器", location:"バックヤード", install:"2019-06", warranty:"2027-06", next:"2030年頃", status:"稼働中", alert:null, pos:{top:30, left:70} },
-    { branch:"BR-03", code:"P-5250", name:"換気扇", location:"バックヤード", install:"2018-03", warranty:"2026-03", next:"2029年頃", status:"稼働中", alert:null, pos:{top:30, left:85} },
-    { branch:"BR-03", code:"P-5260", name:"監視モニター", location:"レジ", install:"2022-04", warranty:"2027-04", next:"2030年頃", status:"稼働中", alert:null, pos:{top:70, left:90} },
-    { branch:"BR-03", code:"P-5270", name:"ネットワークハブ", location:"バックヤード", install:"2021-12", warranty:"2026-12", next:"2029年頃", status:"稼働中", alert:null, pos:{top:15, left:85} },
-    { branch:"BR-03", code:"P-5280", name:"サーバーラック", location:"バックヤード", install:"2020-05", warranty:"2027-05", next:"2030年頃", status:"稼働中", alert:null, pos:{top:30, left:78} },
-    { branch:"BR-03", code:"P-5290", name:"UPS電源装置", location:"バックヤード", install:"2019-09", warranty:"2024-09", next:"更新要検討", status:"要点検", alert:"danger", pos:{top:15, left:78} },
-
-    // ---- BR-04 池袋店 ----
-    { branch:"BR-04", code:"P-5301", name:"ラベルプリンター", location:"レジ", install:"2022-06", warranty:"2027-06", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:9} },
-    { branch:"BR-04", code:"P-5310", name:"バーコードリーダー", location:"レジ", install:"2021-10", warranty:"2026-10", next:"2029年頃", status:"稼働中", alert:null, pos:{top:14, left:9} },
-    { branch:"BR-04", code:"P-5320", name:"タブレット端末", location:"売場", install:"2023-02", warranty:"2026-02", next:"残り約50日", status:"交換時期接近", alert:"warn", pos:{top:20, left:35} },
-    { branch:"BR-04", code:"P-5330", name:"デモ機展示台", location:"売場", install:"2020-08", warranty:"2027-08", next:"2030年頃", status:"稼働中", alert:null, pos:{top:40, left:50} },
-    { branch:"BR-04", code:"P-5340", name:"スマホスタンド", location:"売場", install:"2022-01", warranty:"2027-01", next:"2030年頃", status:"稼働中", alert:null, pos:{top:60, left:35} },
-    { branch:"BR-04", code:"P-5350", name:"ケーブル収納ボックス", location:"バックヤード", install:"2019-04", warranty:"2026-04", next:"2029年頃", status:"稼働中", alert:null, pos:{top:25, left:82} },
-    { branch:"BR-04", code:"P-5360", name:"清掃用ロッカー", location:"バックヤード", install:"2018-07", warranty:"2025-07", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:40, left:82} },
-    { branch:"BR-04", code:"P-5370", name:"ゴミ箱", location:"バックヤード", install:"2021-11", warranty:"2028-11", next:"2031年頃", status:"稼働中", alert:null, pos:{top:55, left:82} },
-    { branch:"BR-04", code:"P-5380", name:"傘立て", location:"エントランス", install:"2020-03", warranty:"2027-03", next:"2030年頃", status:"稼働中", alert:null, pos:{top:9, left:80} },
-    { branch:"BR-04", code:"P-5390", name:"靴箱", location:"エントランス", install:"2017-12", warranty:"2025-12", next:"残り約10日", status:"保証期限切れ間近", alert:"danger", pos:{top:14, left:88} },
-
-    // ---- BR-05 秋葉原店 ----
-    { branch:"BR-05", code:"P-5401", name:"休憩室テーブル", location:"バックヤード", install:"2019-05", warranty:"2026-05", next:"2029年頃", status:"稼働中", alert:null, pos:{top:10, left:80} },
-    { branch:"BR-05", code:"P-5410", name:"休憩室チェア", location:"バックヤード", install:"2019-05", warranty:"2026-05", next:"2029年頃", status:"稼働中", alert:null, pos:{top:20, left:88} },
-    { branch:"BR-05", code:"P-5420", name:"ロッカー", location:"バックヤード", install:"2020-09", warranty:"2027-09", next:"2030年頃", status:"稼働中", alert:null, pos:{top:35, left:80} },
-    { branch:"BR-05", code:"P-5430", name:"金庫", location:"バックヤード", install:"2016-01", warranty:"2026-01", next:"残り約25日", status:"保証期限切れ間近", alert:"danger", pos:{top:50, left:88} },
-    { branch:"BR-05", code:"P-5440", name:"シュレッダー", location:"バックヤード", install:"2021-07", warranty:"2026-07", next:"残り約1ヶ月", status:"交換時期接近", alert:"warn", pos:{top:65, left:80} },
-    { branch:"BR-05", code:"P-5450", name:"コピー機", location:"バックヤード", install:"2020-12", warranty:"2025-12", next:"更新要検討", status:"要点検", alert:"warn", pos:{top:78, left:88} },
-    { branch:"BR-05", code:"P-5460", name:"ホワイトボード", location:"バックヤード", install:"2018-06", warranty:"2028-06", next:"2031年頃", status:"稼働中", alert:null, pos:{top:10, left:95} },
-    { branch:"BR-05", code:"P-5470", name:"掲示板", location:"エントランス", install:"2022-03", warranty:"2029-03", next:"2032年頃", status:"稼働中", alert:null, pos:{top:75, left:12} },
-    { branch:"BR-05", code:"P-5480", name:"時計", location:"レジ", install:"2021-01", warranty:"2031-01", next:"2034年頃", status:"稼働中", alert:null, pos:{top:75, left:55} },
-    { branch:"BR-05", code:"P-5490", name:"加湿器", location:"売場", install:"2022-10", warranty:"2027-10", next:"2030年頃", status:"稼働中", alert:null, pos:{top:20, left:40} }
-  ];
+    BRANCHES = branchRes.data;
+    EQUIPMENT = eqRes.data.map(function(e){
+      return {
+        branch: e.branch_code,
+        code: e.code,
+        name: e.name,
+        location: e.location,
+        install: e.install_date,
+        warranty: e.warranty_until,
+        next: e.next_replace,
+        status: e.status,
+        alert: e.alert_level,
+        pos: { top: e.pos_top, left: e.pos_left }
+      };
+    });
+  }
 
   // ---- 店舗ごとに異なるフロアレイアウト(ゾーン配置のバリエーション) ----
   var STORE_LAYOUTS = {
@@ -818,14 +780,10 @@
 
   var ALERT_LABEL = { warn:"警告", danger:"危険" };
   var BRANCH_NAME = {};
-  BRANCHES.forEach(function(b){ BRANCH_NAME[b.code] = b.name; });
   var CIRCLE_NUM = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
 
   // ---- グローバル店舗選択(タブ①②に連動) ----
   var globalStoreSelect = document.getElementById('globalStoreSelect');
-  globalStoreSelect.innerHTML = BRANCHES.map(function(b){
-    return '<option value="' + b.code + '">' + b.name + '</option>';
-  }).join('');
 
   // ---- タブ①: 店舗レイアウト図(店舗ごとに配置・件数が異なる) ----
   var BADGE_CLASS = { warn:"badge gold", danger:"badge red" };
@@ -901,22 +859,36 @@
     renderEquipmentTable(branchCode);
   }
 
-  globalStoreSelect.addEventListener('change', renderForSelectedStore);
-  eqSearch.addEventListener('input', renderForSelectedStore);
-  renderForSelectedStore();
-
-  // ---- 交換時期・保証期限アラート(ポップアップ内) ----
   var alertTableBody = document.getElementById('alertTableBody');
-  var alertRows = EQUIPMENT.filter(function(e){ return e.alert; })
-    .sort(function(a, b){ return (a.alert === 'danger' ? 0 : 1) - (b.alert === 'danger' ? 0 : 1); });
 
-  alertTableBody.innerHTML = alertRows.map(function(e){
-    return '<tr class="alert-' + e.alert + '"><td>' + BRANCH_NAME[e.branch] + '</td><td class="mono">' + e.code + '</td><td>' + e.name + '</td>' +
-      '<td>' + e.location + '</td><td class="mono">' + e.install + '</td><td class="mono">' + e.warranty + '</td><td class="mono">' + e.next + '</td>' +
-      '<td>' + e.status + '</td><td>' + ALERT_LABEL[e.alert] + '</td></tr>';
-  }).join('');
+  function initAfterLoad(){
+    BRANCHES.forEach(function(b){ BRANCH_NAME[b.code] = b.name; });
+    globalStoreSelect.innerHTML = BRANCHES.map(function(b){
+      return '<option value="' + b.code + '">' + b.name + '</option>';
+    }).join('');
 
-  document.getElementById('alertBadge').textContent = alertRows.length || '';
+    globalStoreSelect.addEventListener('change', renderForSelectedStore);
+    eqSearch.addEventListener('input', renderForSelectedStore);
+    renderForSelectedStore();
+
+    // ---- 交換時期・保証期限アラート(ポップアップ内) ----
+    var alertRows = EQUIPMENT.filter(function(e){ return e.alert; })
+      .sort(function(a, b){ return (a.alert === 'danger' ? 0 : 1) - (b.alert === 'danger' ? 0 : 1); });
+
+    alertTableBody.innerHTML = alertRows.map(function(e){
+      return '<tr class="alert-' + e.alert + '"><td>' + BRANCH_NAME[e.branch] + '</td><td class="mono">' + e.code + '</td><td>' + e.name + '</td>' +
+        '<td>' + e.location + '</td><td class="mono">' + e.install + '</td><td class="mono">' + e.warranty + '</td><td class="mono">' + e.next + '</td>' +
+        '<td>' + e.status + '</td><td>' + ALERT_LABEL[e.alert] + '</td></tr>';
+    }).join('');
+
+    document.getElementById('alertBadge').textContent = alertRows.length || '';
+  }
+
+  loadEquipmentData().then(initAfterLoad).catch(function(err){
+    console.error('Supabaseからのデータ取得に失敗しました', err);
+    document.querySelector('.wrap').insertAdjacentHTML('afterbegin',
+      '<div style="background:#F7E9E6;border:1px solid #B4483A;padding:12px;border-radius:4px;color:#B4483A;">データの読み込みに失敗しました。しばらくしてから再読み込みしてください。</div>');
+  });
 
   // ---- フローティングポップアップ(アラート/チャットボット)の開閉 ----
   var popups = {
