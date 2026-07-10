@@ -253,10 +253,21 @@
     display:none;
     flex-direction:column;
     overflow:hidden;
-    resize:both;
     z-index:100;
   }
   .popup-panel.open{display:flex;}
+  .resize-handle{
+    position:absolute;
+    top:0;
+    left:0;
+    width:18px;
+    height:18px;
+    cursor:nwse-resize;
+    z-index:5;
+    border-top:3px solid rgba(234,241,239,.85);
+    border-left:3px solid rgba(234,241,239,.85);
+    border-top-left-radius:8px;
+  }
   .popup-header{
     background:var(--teal-deep);
     color:#EAF1EF;
@@ -731,6 +742,7 @@
 </div>
 
 <div class="popup-panel" id="alertPopup">
+  <div class="resize-handle" data-target="alertPopup"></div>
   <div class="popup-header">
     <span>交換時期・保証期限アラート(全店舗横断)</span>
     <button type="button" class="popup-min" data-target="alertPopup" aria-label="最小化">－</button>
@@ -756,6 +768,7 @@
 </div>
 
 <div class="popup-panel" id="chatPopup">
+  <div class="resize-handle" data-target="chatPopup"></div>
   <div class="popup-header">
     <span>社内サポートボット</span>
     <button type="button" class="popup-min" data-target="chatPopup" aria-label="最小化">－</button>
@@ -923,5 +936,35 @@
     btn.addEventListener('click', function(){
       document.getElementById(btn.getAttribute('data-target')).classList.remove('open');
     });
+  });
+
+  // ---- ポップアップの左上ハンドルでのリサイズ ----
+  function makeResizable(handle, panel){
+    handle.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      var startX = e.clientX, startY = e.clientY;
+      var startWidth = panel.offsetWidth, startHeight = panel.offsetHeight;
+      var minWidth = 280, minHeight = 220;
+      var maxWidth = window.innerWidth * 0.9, maxHeight = window.innerHeight * 0.85;
+      handle.setPointerCapture(e.pointerId);
+
+      function onMove(ev){
+        var dx = ev.clientX - startX;
+        var dy = ev.clientY - startY;
+        panel.style.width = Math.min(maxWidth, Math.max(minWidth, startWidth - dx)) + 'px';
+        panel.style.height = Math.min(maxHeight, Math.max(minHeight, startHeight - dy)) + 'px';
+      }
+      function onUp(){
+        handle.releasePointerCapture(e.pointerId);
+        handle.removeEventListener('pointermove', onMove);
+        handle.removeEventListener('pointerup', onUp);
+      }
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onUp);
+    });
+  }
+
+  document.querySelectorAll('.resize-handle').forEach(function(h){
+    makeResizable(h, document.getElementById(h.getAttribute('data-target')));
   });
 </script>
