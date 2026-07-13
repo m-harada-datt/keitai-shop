@@ -367,6 +367,59 @@
     padding:6px 8px;
     background:#FFFFFF;
   }
+
+  /* ---- Furniture icons (rough placement, not to scale) ---- */
+  .fp-furniture{
+    position:absolute;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    pointer-events:none;
+    opacity:.85;
+  }
+  .fp-furniture.door{
+    font-size:15px;
+    transform:translate(-50%,-50%);
+  }
+  .fp-furniture.counter{
+    background:#EDEDE7;
+    border:1px solid var(--line-soft);
+    border-radius:2px;
+    font-size:11px;
+    color:var(--ink-soft);
+    transform:translate(-50%,-50%);
+  }
+  .fp-furniture.table{
+    transform:translate(-50%,-50%);
+  }
+  .fp-table-group{
+    position:absolute;
+    width:34px;
+    height:34px;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+  }
+  .fp-table-group .tbl{
+    position:absolute;
+    top:50%; left:50%;
+    width:12px; height:12px;
+    background:#D8CDBE;
+    border:1px solid #B9A98F;
+    transform:translate(-50%,-50%);
+    border-radius:2px;
+  }
+  .fp-table-group .chr{
+    position:absolute;
+    width:7px; height:7px;
+    background:#8A6B4C;
+    border-radius:1px;
+  }
+  .fp-table-group .chr.n{ top:0; left:50%; transform:translate(-50%,0); }
+  .fp-table-group .chr.s{ bottom:0; left:50%; transform:translate(-50%,0); }
+  .fp-table-group .chr.e{ top:50%; right:0; transform:translate(0,-50%); }
+  .fp-table-group .chr.w{ top:50%; left:0; transform:translate(0,-50%); }
+
   .fp-marker{
     position:absolute;
     width:26px;
@@ -613,7 +666,7 @@
 
       <!-- Panel 1: Floor plan -->
       <div class="panel" id="panel1">
-        <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替え、レイアウト図上の設備マーカーをクリックすると、右側に該当設備の情報が表示されます。</div>
+        <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替え、レイアウト図上の設備マーカーをクリックすると、右側に該当設備の情報が表示されます。🚪は出入口、カウンターやテーブル・椅子は什器のおおまかな配置イメージです(実寸ではありません)。</div>
 
         <div class="floorplan-mock">
           <div class="mock-card">
@@ -751,37 +804,63 @@
   }
 
   // ---- 店舗ごとに異なるフロアレイアウト(ゾーン配置のバリエーション) ----
+  // furniture: 大まかな什器配置イメージ(実寸ではありません)
   var STORE_LAYOUTS = {
-    "BR-01": { zones:[
-      { label:"エントランス", top:4, left:3, width:20, height:16 },
-      { label:"レジ", top:4, left:26, width:22, height:16 },
-      { label:"売場", top:24, left:3, width:66, height:58, shade:true },
-      { label:"バックヤード", top:4, left:75, width:22, height:78 }
-    ]},
-    "BR-02": { zones:[
-      { label:"エントランス", top:4, left:75, width:22, height:16 },
-      { label:"レジ", top:22, left:75, width:22, height:16 },
-      { label:"売場", top:4, left:3, width:68, height:58, shade:true },
-      { label:"バックヤード", top:66, left:3, width:94, height:30 }
-    ]},
-    "BR-03": { zones:[
-      { label:"エントランス", top:4, left:38, width:24, height:14 },
-      { label:"バックヤード", top:4, left:64, width:33, height:40 },
-      { label:"売場", top:20, left:3, width:33, height:74, shade:true },
-      { label:"レジ", top:46, left:64, width:33, height:34 }
-    ]},
-    "BR-04": { zones:[
-      { label:"エントランス", top:4, left:3, width:18, height:14 },
-      { label:"レジ", top:4, left:79, width:18, height:14 },
-      { label:"バックヤード", top:20, left:79, width:18, height:70 },
-      { label:"売場", top:4, left:23, width:54, height:86, shade:true }
-    ]},
-    "BR-05": { zones:[
-      { label:"売場", top:4, left:3, width:68, height:56, shade:true },
-      { label:"バックヤード", top:4, left:75, width:22, height:90 },
-      { label:"エントランス", top:64, left:3, width:32, height:30 },
-      { label:"レジ", top:64, left:39, width:32, height:30 }
-    ]}
+    "BR-01": {
+      zones:[
+        { label:"エントランス", top:4, left:3, width:20, height:16 },
+        { label:"レジ", top:4, left:26, width:22, height:16 },
+        { label:"売場", top:24, left:3, width:66, height:58, shade:true },
+        { label:"バックヤード", top:4, left:75, width:22, height:78 }
+      ],
+      doors:[ { top:12, left:4 } ],
+      counters:[ { top:10, left:37, width:18, height:8, label:"カウンター" } ],
+      tables:[ { top:45, left:20 }, { top:45, left:50 }, { top:65, left:35 } ]
+    },
+    "BR-02": {
+      zones:[
+        { label:"エントランス", top:4, left:75, width:22, height:16 },
+        { label:"レジ", top:22, left:75, width:22, height:16 },
+        { label:"売場", top:4, left:3, width:68, height:58, shade:true },
+        { label:"バックヤード", top:66, left:3, width:94, height:30 }
+      ],
+      doors:[ { top:12, left:96 } ],
+      counters:[ { top:29, left:86, width:18, height:8, label:"カウンター" } ],
+      tables:[ { top:20, left:20 }, { top:20, left:50 }, { top:40, left:35 } ]
+    },
+    "BR-03": {
+      zones:[
+        { label:"エントランス", top:4, left:38, width:24, height:14 },
+        { label:"バックヤード", top:4, left:64, width:33, height:40 },
+        { label:"売場", top:20, left:3, width:33, height:74, shade:true },
+        { label:"レジ", top:46, left:64, width:33, height:34 }
+      ],
+      doors:[ { top:4, left:42 } ],
+      counters:[ { top:55, left:80, width:20, height:8, label:"カウンター" } ],
+      tables:[ { top:35, left:19 }, { top:55, left:19 }, { top:75, left:19 } ]
+    },
+    "BR-04": {
+      zones:[
+        { label:"エントランス", top:4, left:3, width:18, height:14 },
+        { label:"レジ", top:4, left:79, width:18, height:14 },
+        { label:"バックヤード", top:20, left:79, width:18, height:70 },
+        { label:"売場", top:4, left:23, width:54, height:86, shade:true }
+      ],
+      doors:[ { top:10, left:4 } ],
+      counters:[ { top:10, left:88, width:14, height:8, label:"カウンター" } ],
+      tables:[ { top:25, left:35 }, { top:50, left:50 }, { top:75, left:35 } ]
+    },
+    "BR-05": {
+      zones:[
+        { label:"売場", top:4, left:3, width:68, height:56, shade:true },
+        { label:"バックヤード", top:4, left:75, width:22, height:90 },
+        { label:"エントランス", top:64, left:3, width:32, height:30 },
+        { label:"レジ", top:64, left:39, width:32, height:30 }
+      ],
+      doors:[ { top:90, left:5 } ],
+      counters:[ { top:80, left:55, width:20, height:8, label:"カウンター" } ],
+      tables:[ { top:20, left:20 }, { top:20, left:50 }, { top:40, left:35 } ]
+    }
   };
 
   var ALERT_LABEL = { warn:"警告", danger:"危険" };
@@ -829,11 +908,25 @@
         (z.shade ? ' background:#FBFCFC;' : '') + '">' + z.label + '</div>';
     }).join('');
 
+    var doorsHtml = (layout.doors || []).map(function(d){
+      return '<div class="fp-furniture door" style="top:' + d.top + '%; left:' + d.left + '%;" title="出入口">🚪</div>';
+    }).join('');
+
+    var countersHtml = (layout.counters || []).map(function(c){
+      return '<div class="fp-furniture counter" style="top:' + c.top + '%; left:' + c.left + '%; width:' + c.width + '%; height:' + c.height + '%;" title="' + c.label + '">' + c.label + '</div>';
+    }).join('');
+
+    var tablesHtml = (layout.tables || []).map(function(t){
+      return '<div class="fp-table-group" style="top:' + t.top + '%; left:' + t.left + '%;" title="テーブル・椅子">' +
+        '<div class="tbl"></div><div class="chr n"></div><div class="chr s"></div><div class="chr e"></div><div class="chr w"></div>' +
+        '</div>';
+    }).join('');
+
     var markersHtml = items.map(function(e, idx){
       return '<div class="fp-marker" data-idx="' + idx + '" tabindex="0" style="top:' + e.pos.top + '%; left:' + e.pos.left + '%;">' + (idx + 1) + '</div>';
     }).join('');
 
-    floorplanArea.innerHTML = zonesHtml + markersHtml;
+    floorplanArea.innerHTML = zonesHtml + doorsHtml + countersHtml + tablesHtml + markersHtml;
 
     floorplanArea.querySelectorAll('.fp-marker').forEach(function(m){
       m.addEventListener('click', function(){ renderFloorPlanDetail(items, Number(m.getAttribute('data-idx'))); });
