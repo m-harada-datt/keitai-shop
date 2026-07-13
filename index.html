@@ -409,24 +409,25 @@
 
   .floorplan{
     position:relative;
-    background-color:#F7FAF9;
+    background-color:#E4D2AC;
     background-image:
-      linear-gradient(rgba(120,140,135,.12) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(120,140,135,.12) 1px, transparent 1px);
-    background-size:20px 20px;
-    border:2px solid var(--ink);
-    border-radius:2px;
+      linear-gradient(rgba(90,70,40,.16) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,70,40,.16) 1px, transparent 1px);
+    background-size:24px 24px;
+    border:3px solid var(--ink);
+    border-radius:0;
     aspect-ratio:4/3;
     overflow:hidden;
   }
   .fp-zone{
     position:absolute;
-    border:1px solid var(--line-soft);
+    border:2px solid var(--ink);
     border-radius:0;
     font-size:11px;
+    font-weight:600;
     color:var(--ink-soft);
     padding:6px 8px;
-    background:#FFFFFF;
+    background:#F3EFE6;
   }
 
   /* ---- Furniture icons (rough placement, not to scale) ---- */
@@ -457,26 +458,27 @@
   }
   .fp-table-group{
     position:absolute;
-    width:42px;
-    height:42px;
+    width:52px;
+    height:52px;
     transform:translate(-50%,-50%);
     pointer-events:none;
   }
   .fp-table-group .tbl{
     position:absolute;
     top:50%; left:50%;
-    width:16px; height:16px;
-    background:#D8CDBE;
-    border:1.5px solid #9C8A6C;
+    width:20px; height:20px;
+    background:#5C4630;
+    border:2px solid #3A2C1C;
     transform:translate(-50%,-50%) rotate(45deg);
-    box-shadow:0 1px 2px rgba(0,0,0,.1);
+    box-shadow:0 2px 4px rgba(0,0,0,.25);
   }
   .fp-table-group .chr{
     position:absolute;
-    width:9px; height:9px;
+    width:13px; height:13px;
     background:#8A6B4C;
-    border:1px solid #6B4F35;
-    border-radius:2px;
+    border:1.5px solid #3A2C1C;
+    border-radius:3px;
+    box-shadow:0 1px 2px rgba(0,0,0,.2);
   }
   .fp-table-group .chr.n{ top:1px; left:50%; transform:translate(-50%,0); }
   .fp-table-group .chr.s{ bottom:1px; left:50%; transform:translate(-50%,0); }
@@ -989,7 +991,7 @@
 
     var zonesHtml = layout.zones.map(function(z){
       return '<div class="fp-zone" style="top:' + z.top + '%; left:' + z.left + '%; width:' + z.width + '%; height:' + z.height + '%;' +
-        (z.shade ? ' background:#FBFCFC;' : '') + '">' + z.label + '</div>';
+        (z.shade ? ' background:transparent; border-style:dashed;' : '') + '">' + z.label + '</div>';
     }).join('');
 
     var DOOR_SVG = '<svg viewBox="0 0 28 28"><path d="M4 4 L4 24" stroke="#8A6B4C" stroke-width="2.5" fill="none"/>' +
