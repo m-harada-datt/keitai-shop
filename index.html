@@ -295,6 +295,7 @@
   }
   #alertPopup{width:min(680px, calc(100vw - 48px));}
   #alertPopup .popup-body{padding:14px;}
+  #chatPopup{width:min(520px, calc(100vw - 48px));}
   #chatPopup .popup-body{padding:0;}
   #chatPopup .chat-window{border:none; border-radius:0; max-width:none;}
 
@@ -493,6 +494,24 @@
   .msg.user .bubble{background:var(--teal-deep); color:#fff; border-bottom-right-radius:3px;}
   .msg.bot .bubble{background:#fff; border:1px solid var(--line-soft); color:var(--ink); border-bottom-left-radius:3px;}
   .msg .who{font-size:10.5px; color:var(--ink-soft); letter-spacing:.03em;}
+  .msg.bot{max-width:96%;}
+  .msg.bot .bubble p{margin:0 0 8px; }
+  .msg.bot .bubble p:last-child{margin-bottom:0;}
+  .msg.bot .bubble h1, .msg.bot .bubble h2, .msg.bot .bubble h3{
+    font-size:14.5px; margin:4px 0 8px; color:var(--teal-deep);
+  }
+  .msg.bot .bubble ul, .msg.bot .bubble ol{margin:0 0 8px; padding-left:1.3em;}
+  .msg.bot .bubble strong{color:var(--ink);}
+  .msg.bot .bubble table{
+    border-collapse:collapse; width:100%; font-size:12.5px; margin:8px 0;
+  }
+  .msg.bot .bubble th, .msg.bot .bubble td{
+    border:1px solid var(--line-soft); padding:6px 8px; text-align:left;
+  }
+  .msg.bot .bubble th{background:#F5F8F7; color:var(--ink-soft); font-weight:600;}
+  .msg.bot .bubble code{
+    background:var(--teal-tint); padding:1px 5px; border-radius:3px; font-family:var(--font-mono); font-size:12px;
+  }
   .chat-input{
     display:flex;
     gap:8px;
@@ -697,6 +716,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
   // ---- Supabase接続(支店・備品マスタ) ----
   var supabaseClient = supabase.createClient(
@@ -933,12 +953,20 @@
   var chatInput = document.getElementById('chatInput');
   var chatSend = document.getElementById('chatSend');
 
+  function setBubbleText(bubble, text){
+    bubble.textContent = text;
+  }
+
+  function setBubbleMarkdown(bubble, markdownText){
+    bubble.innerHTML = marked.parse(markdownText);
+  }
+
   function addChatMessage(role, text){
     var whoLabel = role === 'user' ? '店舗スタッフ' : 'サポートボット';
     var div = document.createElement('div');
     div.className = 'msg ' + role;
     div.innerHTML = '<span class="who">' + whoLabel + '</span><div class="bubble"></div>';
-    div.querySelector('.bubble').textContent = text;
+    setBubbleText(div.querySelector('.bubble'), text);
     chatBody.appendChild(div);
     chatBody.scrollTop = chatBody.scrollHeight;
     return div;
@@ -951,6 +979,7 @@
     chatInput.value = '';
     chatSend.disabled = true;
     var thinking = addChatMessage('bot', '回答を考えています…');
+    var bubble = thinking.querySelector('.bubble');
 
     try{
       var res = await fetch('/api/chat', {
@@ -959,11 +988,16 @@
         body: JSON.stringify({ question: question })
       });
       var data = await res.json();
-      thinking.querySelector('.bubble').textContent = res.ok ? data.answer : ('エラーが発生しました: ' + (data.error || res.status));
+      if(res.ok){
+        setBubbleMarkdown(bubble, data.answer);
+      }else{
+        setBubbleText(bubble, 'エラーが発生しました: ' + (data.error || res.status));
+      }
     }catch(err){
-      thinking.querySelector('.bubble').textContent = '通信エラーが発生しました。しばらくしてから再度お試しください。';
+      setBubbleText(bubble, '通信エラーが発生しました。しばらくしてから再度お試しください。');
     }finally{
       chatSend.disabled = false;
+      chatBody.scrollTop = chatBody.scrollHeight;
     }
   }
 
