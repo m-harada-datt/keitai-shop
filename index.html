@@ -409,16 +409,20 @@
 
   .floorplan{
     position:relative;
-    background:#F7FAF9;
-    border:1px dashed var(--line);
-    border-radius:4px;
+    background-color:#F7FAF9;
+    background-image:
+      linear-gradient(rgba(120,140,135,.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,140,135,.12) 1px, transparent 1px);
+    background-size:20px 20px;
+    border:2px solid var(--ink);
+    border-radius:2px;
     aspect-ratio:4/3;
     overflow:hidden;
   }
   .fp-zone{
     position:absolute;
     border:1px solid var(--line-soft);
-    border-radius:3px;
+    border-radius:0;
     font-size:11px;
     color:var(--ink-soft);
     padding:6px 8px;
@@ -433,49 +437,51 @@
     justify-content:center;
     font-size:14px;
     pointer-events:none;
-    opacity:.85;
+    opacity:.9;
   }
   .fp-furniture.door{
-    font-size:15px;
+    width:28px;
+    height:28px;
     transform:translate(-50%,-50%);
   }
+  .fp-furniture.door svg{width:100%; height:100%; overflow:visible;}
   .fp-furniture.counter{
-    background:#EDEDE7;
-    border:1px solid var(--line-soft);
-    border-radius:2px;
-    font-size:11px;
-    color:var(--ink-soft);
+    background:repeating-linear-gradient(45deg, #EDEDE7, #EDEDE7 5px, #E2E2DA 5px, #E2E2DA 10px);
+    border:1.5px solid var(--ink-soft);
+    border-radius:1px;
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--ink);
     transform:translate(-50%,-50%);
-  }
-  .fp-furniture.table{
-    transform:translate(-50%,-50%);
+    box-shadow:0 1px 2px rgba(0,0,0,.08);
   }
   .fp-table-group{
     position:absolute;
-    width:34px;
-    height:34px;
+    width:42px;
+    height:42px;
     transform:translate(-50%,-50%);
     pointer-events:none;
   }
   .fp-table-group .tbl{
     position:absolute;
     top:50%; left:50%;
-    width:12px; height:12px;
+    width:16px; height:16px;
     background:#D8CDBE;
-    border:1px solid #B9A98F;
-    transform:translate(-50%,-50%);
-    border-radius:2px;
+    border:1.5px solid #9C8A6C;
+    transform:translate(-50%,-50%) rotate(45deg);
+    box-shadow:0 1px 2px rgba(0,0,0,.1);
   }
   .fp-table-group .chr{
     position:absolute;
-    width:7px; height:7px;
+    width:9px; height:9px;
     background:#8A6B4C;
-    border-radius:1px;
+    border:1px solid #6B4F35;
+    border-radius:2px;
   }
-  .fp-table-group .chr.n{ top:0; left:50%; transform:translate(-50%,0); }
-  .fp-table-group .chr.s{ bottom:0; left:50%; transform:translate(-50%,0); }
-  .fp-table-group .chr.e{ top:50%; right:0; transform:translate(0,-50%); }
-  .fp-table-group .chr.w{ top:50%; left:0; transform:translate(0,-50%); }
+  .fp-table-group .chr.n{ top:1px; left:50%; transform:translate(-50%,0); }
+  .fp-table-group .chr.s{ bottom:1px; left:50%; transform:translate(-50%,0); }
+  .fp-table-group .chr.e{ top:50%; right:1px; transform:translate(0,-50%); }
+  .fp-table-group .chr.w{ top:50%; left:1px; transform:translate(0,-50%); }
 
   .fp-marker{
     position:absolute;
@@ -986,8 +992,11 @@
         (z.shade ? ' background:#FBFCFC;' : '') + '">' + z.label + '</div>';
     }).join('');
 
+    var DOOR_SVG = '<svg viewBox="0 0 28 28"><path d="M4 4 L4 24" stroke="#8A6B4C" stroke-width="2.5" fill="none"/>' +
+      '<path d="M4 4 A20 20 0 0 1 24 24" stroke="var(--ink-soft)" stroke-width="1" fill="none" stroke-dasharray="2 2"/>' +
+      '<path d="M4 4 L24 24" stroke="#8A6B4C" stroke-width="2.5" fill="none"/></svg>';
     var doorsHtml = (layout.doors || []).map(function(d){
-      return '<div class="fp-furniture door" style="top:' + d.top + '%; left:' + d.left + '%;" title="出入口">🚪</div>';
+      return '<div class="fp-furniture door" style="top:' + d.top + '%; left:' + d.left + '%;" title="出入口">' + DOOR_SVG + '</div>';
     }).join('');
 
     var countersHtml = (layout.counters || []).map(function(c){
