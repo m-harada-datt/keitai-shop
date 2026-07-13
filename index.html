@@ -682,29 +682,15 @@
   <div class="popup-body">
     <div class="chat-window">
       <div class="chat-titlebar"><span class="dot-live"></span>社内サポートボット</div>
-      <div class="chat-body">
-        <div class="msg user">
-          <span class="who">店舗スタッフ</span>
-          <div class="bubble">渋谷店の看板の保証期限を教えてください</div>
-        </div>
+      <div class="chat-body" id="chatBody">
         <div class="msg bot">
           <span class="who">サポートボット</span>
-          <div class="bubble">渋谷店 看板(品番:P-4410)の保証期限は2027年3月です。現時点でアラートは出ていません。</div>
-          <div class="chat-source">参照元:設備台帳(渋谷店 / P-4410)</div>
-        </div>
-        <div class="msg user">
-          <span class="who">店舗スタッフ</span>
-          <div class="bubble">什器の発注書はどこにありますか</div>
-        </div>
-        <div class="msg bot">
-          <span class="who">サポートボット</span>
-          <div class="bubble">什器の発注書は社内共有ドライブの「設備管理 &gt; 発注書」フォルダにあります。該当フォルダを開きますか?</div>
-          <div class="chat-source">参照元:社内資料インデックス</div>
+          <div class="bubble">こんにちは。備品・店舗に関するご質問にお答えします。</div>
         </div>
       </div>
       <div class="chat-input">
-        <input type="text" placeholder="質問を入力してください" />
-        <button type="button">送信</button>
+        <input type="text" id="chatInput" placeholder="質問を入力してください" />
+        <button type="button" id="chatSend">送信</button>
       </div>
     </div>
   </div>
@@ -940,5 +926,49 @@
 
   document.querySelectorAll('.resize-handle').forEach(function(h){
     makeResizable(h, document.getElementById(h.getAttribute('data-target')));
+  });
+
+  // ---- チャットボット(STORM AIエージェント連携) ----
+  var chatBody = document.getElementById('chatBody');
+  var chatInput = document.getElementById('chatInput');
+  var chatSend = document.getElementById('chatSend');
+
+  function addChatMessage(role, text){
+    var whoLabel = role === 'user' ? '店舗スタッフ' : 'サポートボット';
+    var div = document.createElement('div');
+    div.className = 'msg ' + role;
+    div.innerHTML = '<span class="who">' + whoLabel + '</span><div class="bubble"></div>';
+    div.querySelector('.bubble').textContent = text;
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return div;
+  }
+
+  async function sendChatMessage(){
+    var question = chatInput.value.trim();
+    if(!question) return;
+    addChatMessage('user', question);
+    chatInput.value = '';
+    chatSend.disabled = true;
+    var thinking = addChatMessage('bot', '回答を考えています…');
+
+    try{
+      var res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question })
+      });
+      var data = await res.json();
+      thinking.querySelector('.bubble').textContent = res.ok ? data.answer : ('エラーが発生しました: ' + (data.error || res.status));
+    }catch(err){
+      thinking.querySelector('.bubble').textContent = '通信エラーが発生しました。しばらくしてから再度お試しください。';
+    }finally{
+      chatSend.disabled = false;
+    }
+  }
+
+  chatSend.addEventListener('click', sendChatMessage);
+  chatInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') sendChatMessage();
   });
 </script>
