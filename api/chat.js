@@ -28,15 +28,13 @@ export default async function handler(req, res) {
     }
 
     const answer =
+      data.data?.chat?.answer ??
       data.answer ??
       data.data?.answer ??
       data.message ??
-      data.result ??
-      data.text ??
-      data.response ??
       JSON.stringify(data);
 
-    res.status(200).json({ answer, raw: data });
+    res.status(200).json({ answer });
   } catch (err) {
     res.status(500).json({ error: 'Internal error', detail: String(err) });
   }
