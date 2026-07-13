@@ -35,6 +35,63 @@
     gap:40px;
   }
 
+  /* ---- Login screen ---- */
+  #loginScreen{
+    position:fixed;
+    inset:0;
+    background:var(--ground);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+  }
+  #loginScreen.hidden{display:none;}
+  .login-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:36px 40px;
+    width:340px;
+    max-width:calc(100vw - 48px);
+    box-shadow:0 8px 28px rgba(15,64,56,.15);
+  }
+  .login-card h2{margin:0 0 6px; font-size:18px; color:var(--ink);}
+  .login-card p{margin:0 0 20px; font-size:13px; color:var(--ink-soft);}
+  .login-field{margin-bottom:14px;}
+  .login-field label{display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:5px;}
+  .login-field input{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:3px;
+    font-size:14px; box-sizing:border-box; font-family:var(--font-jp);
+  }
+  .login-error{color:var(--red); font-size:12.5px; margin-bottom:12px; min-height:1em;}
+  .login-submit{
+    width:100%; padding:10px; background:var(--teal-deep); color:#fff; border:none;
+    border-radius:4px; font-weight:600; cursor:pointer; font-size:14px;
+  }
+  .login-submit:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+  .login-hint{
+    margin-top:18px; font-size:11.5px; color:var(--ink-soft); line-height:1.8;
+    background:var(--teal-tint); border:1px solid #CFE2DC; border-radius:4px; padding:10px 12px;
+  }
+  .login-hint strong{color:var(--teal-deep);}
+
+  /* ---- User badge ---- */
+  .head{position:relative;}
+  .user-badge{
+    position:absolute;
+    top:0; right:0;
+    display:none;
+    align-items:center;
+    gap:10px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .user-badge button{
+    background:none; border:1px solid var(--line); border-radius:3px;
+    padding:4px 10px; cursor:pointer; font-size:12px; color:var(--ink-soft); font-family:var(--font-jp);
+  }
+  .user-badge button:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+
   /* ---- Header ---- */
   .head{
     display:flex;
@@ -615,9 +672,37 @@
   .footnote strong{color:var(--ink);}
 </style>
 
-<div class="wrap">
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>設備管理システム ログイン</h2>
+    <p>ログインIDとパスワードを入力してください。</p>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label for="loginId">ログインID</label>
+      <input type="text" id="loginId" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label for="loginPw">パスワード</label>
+      <input type="password" id="loginPw" autocomplete="current-password" />
+    </div>
+    <button type="button" class="login-submit" id="loginSubmit">ログイン</button>
+    <div class="login-hint">
+      <strong>デモ用アカウント(確認用)</strong><br>
+      本部管理者: hq_admin / HQadmin2026!<br>
+      渋谷店: shibuya_staff / Shibuya2026!<br>
+      新宿店: shinjuku_staff / Shinjuku2026!<br>
+      横浜店: yokohama_staff / Yokohama2026!
+    </div>
+  </div>
+</div>
+
+<div class="wrap" style="display:none;">
 
   <div class="head">
+    <div class="user-badge" id="userBadge">
+      <span id="userBadgeText"></span>
+      <button type="button" id="logoutBtn">ログアウト</button>
+    </div>
     <span class="eyebrow">System Mock — Draft for Confirmation</span>
     <h1>設備管理業務 効率化イメージ(モック)</h1>
     <p>店舗の設備情報(品番・導入時期・保証期間等)を、レイアウト図からのクリックや台帳一覧で一元的に確認できるイメージです。あわせて交換時期アラートと社内チャットボットのイメージもご確認をお願いいたします。</p>
@@ -712,7 +797,7 @@
 </div>
 
 <!-- Floating widgets: Alerts / Chatbot (どのタブからでも開閉できるポップアップ) -->
-<div class="fab-stack">
+<div class="fab-stack" id="fabStack" style="display:none;">
   <button type="button" class="fab" id="alertFab" aria-label="交換時期・保証期限アラートを開く">
     ⚠<span class="fab-badge" id="alertBadge"></span>
   </button>
@@ -981,6 +1066,8 @@
     }).join('');
 
     document.getElementById('alertBadge').textContent = alertRows.length || '';
+
+    if(currentUser) applyRoleRestrictions();
   }
 
   loadEquipmentData().then(initAfterLoad).catch(function(err){
@@ -1098,4 +1185,77 @@
   chatInput.addEventListener('keydown', function(e){
     if(e.key === 'Enter') sendChatMessage();
   });
+
+  // ---- ログイン認証(モック用の簡易実装。本番のセキュリティ用途ではありません) ----
+  var USERS = [
+    { id:'hq_admin', password:'HQadmin2026!', role:'hq', name:'本部管理者' },
+    { id:'shibuya_staff', password:'Shibuya2026!', role:'store', store:'BR-01', name:'渋谷店 店舗スタッフ' },
+    { id:'shinjuku_staff', password:'Shinjuku2026!', role:'store', store:'BR-02', name:'新宿店 店舗スタッフ' },
+    { id:'yokohama_staff', password:'Yokohama2026!', role:'store', store:'BR-03', name:'横浜店 店舗スタッフ' }
+  ];
+  var currentUser = null;
+
+  function applyRoleRestrictions(){
+    if(!currentUser) return;
+    var isStoreRole = currentUser.role === 'store';
+    Array.from(globalStoreSelect.options).forEach(function(opt){
+      opt.hidden = isStoreRole && opt.value !== currentUser.store;
+    });
+    if(isStoreRole){
+      globalStoreSelect.value = currentUser.store;
+      globalStoreSelect.disabled = true;
+    }else{
+      globalStoreSelect.disabled = false;
+    }
+    if(globalStoreSelect.options.length) renderForSelectedStore();
+  }
+
+  function showApp(){
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.querySelector('.wrap').style.display = '';
+    document.getElementById('fabStack').style.display = '';
+    var badge = document.getElementById('userBadge');
+    badge.style.display = 'flex';
+    document.getElementById('userBadgeText').textContent =
+      currentUser.name + '(' + (currentUser.role === 'hq' ? '本部管理者' : '店舗スタッフ') + ')';
+  }
+
+  function tryLogin(){
+    var id = document.getElementById('loginId').value.trim();
+    var pw = document.getElementById('loginPw').value;
+    var user = USERS.find(function(u){ return u.id === id && u.password === pw; });
+    var errEl = document.getElementById('loginError');
+    if(!user){
+      errEl.textContent = 'ログインIDまたはパスワードが正しくありません。';
+      return;
+    }
+    errEl.textContent = '';
+    currentUser = user;
+    sessionStorage.setItem('mockUser', JSON.stringify(user));
+    showApp();
+    applyRoleRestrictions();
+  }
+
+  document.getElementById('loginSubmit').addEventListener('click', tryLogin);
+  document.getElementById('loginPw').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') tryLogin();
+  });
+  document.getElementById('loginId').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') tryLogin();
+  });
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    sessionStorage.removeItem('mockUser');
+    location.reload();
+  });
+
+  (function(){
+    var saved = sessionStorage.getItem('mockUser');
+    if(saved){
+      try{
+        currentUser = JSON.parse(saved);
+        showApp();
+        applyRoleRestrictions();
+      }catch(e){}
+    }
+  })();
 </script>
