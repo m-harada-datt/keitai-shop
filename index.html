@@ -789,7 +789,7 @@
 
       <!-- Panel 1: Floor plan -->
       <div class="panel" id="panel1">
-        <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替え、レイアウト図上の設備マーカーをクリックすると、右側に該当設備の情報が表示されます。🚪は出入口、カウンターやテーブル・椅子は什器のおおまかな配置イメージです(実寸ではありません)。</div>
+        <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替え、レイアウト図上のマーカーをクリックすると、右側に「店舗設備一覧」タブと同じ内容(売場現況・バックヤード設備・トイレ/更衣室/空調)が表示されます。🚪は出入口、カウンターやテーブル・椅子は什器のおおまかな配置イメージです(実寸ではありません)。マーカーの位置も概念確認用のイメージです。</div>
 
         <div class="floorplan-mock">
           <div class="mock-card">
@@ -998,32 +998,33 @@
 
   var ALERT_LABEL = { warn:"警告", danger:"危険" };
   var BRANCH_NAME = {};
-  var CIRCLE_NUM = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+  var CIRCLE_NUM = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫"];
 
   // ---- グローバル店舗選択(タブ①②に連動) ----
   var globalStoreSelect = document.getElementById('globalStoreSelect');
 
-  // ---- タブ①: 店舗レイアウト図(店舗ごとに配置・件数が異なる) ----
-  var BADGE_CLASS = { warn:"badge gold", danger:"badge red" };
-  var ITEM_CLASS = { warn:"eq-item warn", danger:"eq-item danger" };
+  // ---- タブ①: 店舗レイアウト図(店舗設備一覧と同じ内容をマーカー表示) ----
+  var CATEGORY_BADGE = { '売場':'badge', 'バックヤード':'badge gold', 'トイレ':'badge', '更衣室':'badge', '空調':'badge' };
   var floorplanArea = document.getElementById('floorplanArea');
   var eqDetailArea = document.getElementById('eqDetailArea');
 
+  // 12項目を4列×3行の格子に均等配置(重なり防止)
+  var GRID_COLS = [10, 36, 62, 88];
+  var GRID_ROWS = [14, 50, 86];
+  var GRID_SLOTS = [];
+  GRID_ROWS.forEach(function(r){ GRID_COLS.forEach(function(c){ GRID_SLOTS.push({top:r, left:c}); }); });
+
   function renderFloorPlanDetail(items, idx){
     var e = items[idx];
-    var badgeClass = e.alert ? BADGE_CLASS[e.alert] : 'badge';
-    var itemClass = e.alert ? ITEM_CLASS[e.alert] : 'eq-item';
+    var badgeClass = CATEGORY_BADGE[e.category] || 'badge';
     eqDetailArea.innerHTML =
       '<div class="eq-detail">' +
-        '<div class="eq-target">選択中の設備<strong>' + CIRCLE_NUM[idx] + ' ' + e.name + '</strong></div>' +
-        '<span class="' + badgeClass + '">' + e.status + '</span>' +
+        '<div class="eq-target">選択中の項目<strong>' + CIRCLE_NUM[idx] + ' ' + e.item + '</strong></div>' +
+        '<span class="' + badgeClass + '">' + e.category + '</span>' +
         '<div class="eq-grid">' +
-          '<div class="eq-item"><div class="k">品番</div><div class="v">' + e.code + '</div></div>' +
-          '<div class="eq-item"><div class="k">導入年月</div><div class="v">' + e.install + '</div></div>' +
-          '<div class="' + itemClass + '"><div class="k">保証期間</div><div class="v">' + e.warranty + 'まで</div></div>' +
-          '<div class="' + itemClass + '"><div class="k">次回交換目安</div><div class="v">' + e.next + '</div></div>' +
+          '<div class="eq-item" style="grid-column:1 / -1;"><div class="k">内容</div><div class="v" style="font-size:13px; font-weight:600; white-space:normal;">' + (e.content || '-') + '</div></div>' +
         '</div>' +
-        '<div class="callout"><span class="dot">→</span><span>設置場所: ' + e.location + '。スプレッドシート台帳の情報を、店舗コード・設備IDに紐付けて表示する想定です。</span></div>' +
+        '<div class="callout"><span class="dot">→</span><span>「店舗設備一覧」タブと同じ内容を、レイアウト図上のマーカーからも確認できます。</span></div>' +
       '</div>';
 
     floorplanArea.querySelectorAll('.fp-marker').forEach(function(m){
@@ -1034,7 +1035,7 @@
   function renderFloorPlan(branchCode){
     document.getElementById('fpBranchName').textContent = BRANCH_NAME[branchCode];
     var layout = STORE_LAYOUTS[branchCode];
-    var items = EQUIPMENT.filter(function(e){ return e.branch === branchCode; });
+    var items = buildStoreEquipmentRows(STORE_DETAILS[branchCode]);
 
     var zonesHtml = layout.zones.map(function(z){
       return '<div class="fp-zone" style="top:' + z.top + '%; left:' + z.left + '%; width:' + z.width + '%; height:' + z.height + '%;' +
@@ -1059,7 +1060,8 @@
     }).join('');
 
     var markersHtml = items.map(function(e, idx){
-      return '<div class="fp-marker" data-idx="' + idx + '" tabindex="0" title="' + e.name + '" style="top:' + e.pos.top + '%; left:' + e.pos.left + '%;">' + e.name + '</div>';
+      var pos = GRID_SLOTS[idx] || { top:50, left:50 };
+      return '<div class="fp-marker" data-idx="' + idx + '" tabindex="0" title="' + e.item + '" style="top:' + pos.top + '%; left:' + pos.left + '%;">' + e.item + '</div>';
     }).join('');
 
     floorplanArea.innerHTML = zonesHtml + doorsHtml + countersHtml + tablesHtml + markersHtml;
