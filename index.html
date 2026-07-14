@@ -239,7 +239,8 @@
     border-radius:0 0 6px 6px;
   }
   #tab1:checked ~ .tabset label[for="tab1"],
-  #tab2:checked ~ .tabset label[for="tab2"]{
+  #tab2:checked ~ .tabset label[for="tab2"],
+  #tab3:checked ~ .tabset label[for="tab3"]{
     color:var(--teal-deep);
     background:var(--surface);
     border-color:var(--line);
@@ -247,6 +248,33 @@
   }
   #tab1:checked ~ .panels #panel1{display:block;}
   #tab2:checked ~ .panels #panel2{display:block;}
+  #tab3:checked ~ .panels #panel3{display:block;}
+
+  /* ---- Store info panel (Tab3) ---- */
+  .info-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    gap:16px;
+  }
+  .info-card{
+    background:var(--surface);
+    border:1px solid var(--line-soft);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .info-card .info-title{
+    background:var(--ink);
+    color:#EAF1EF;
+    font-size:12px;
+    letter-spacing:.05em;
+    padding:8px 14px;
+    font-family:var(--font-mono);
+  }
+  .info-card .info-body{padding:14px 16px; display:flex; flex-direction:column; gap:10px;}
+  .info-row{font-size:13px; line-height:1.7;}
+  .info-row .k{font-size:11px; color:var(--ink-soft); letter-spacing:.03em; display:block;}
+  .info-row .v{color:var(--ink); font-weight:600;}
+  .info-card.wide{grid-column:1 / -1;}
 
   /* ---- Floating widgets (alerts / chatbot) ---- */
   .fab-stack{
@@ -750,9 +778,11 @@
   <div class="tabs">
     <input type="radio" name="tabgroup" id="tab1" checked>
     <input type="radio" name="tabgroup" id="tab2">
+    <input type="radio" name="tabgroup" id="tab3">
     <div class="tabset">
       <label for="tab1">店舗レイアウト図</label>
       <label for="tab2">店舗設備一覧</label>
+      <label for="tab3">店舗情報</label>
     </div>
 
     <div class="panels">
@@ -763,7 +793,7 @@
 
         <div class="floorplan-mock">
           <div class="mock-card">
-            <div class="mock-titlebar"><span>店舗レイアウト図</span><span id="fpBranchName">渋谷店</span></div>
+            <div class="mock-titlebar"><span>店舗レイアウト図</span><span id="fpBranchName">読み込み中...</span></div>
             <div class="mock-body">
               <div class="floorplan" id="floorplanArea"></div>
             </div>
@@ -792,6 +822,12 @@
             <tbody id="eqTableBody"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Panel 3: Store info -->
+      <div class="panel" id="panel3">
+        <div class="screen-note">画面イメージ③: 店舗ごとの物件情報・防火防災・売場現況・バックヤード設備をまとめて確認できます(現行はExcelで個別管理)。</div>
+        <div id="storeInfoArea" class="info-grid"></div>
       </div>
 
     </div>
@@ -872,12 +908,15 @@
 
   var BRANCHES = [];
   var EQUIPMENT = [];
+  var STORE_DETAILS = {};
 
   async function loadEquipmentData(){
     var branchRes = await supabaseClient.from('branches').select('*').order('id');
     var eqRes = await supabaseClient.from('equipment').select('*').order('id');
+    var detailRes = await supabaseClient.from('store_details').select('*');
     if(branchRes.error) throw branchRes.error;
     if(eqRes.error) throw eqRes.error;
+    if(detailRes.error) throw detailRes.error;
 
     BRANCHES = branchRes.data;
     EQUIPMENT = eqRes.data.map(function(e){
@@ -894,6 +933,7 @@
         pos: { top: e.pos_top, left: e.pos_left }
       };
     });
+    detailRes.data.forEach(function(d){ STORE_DETAILS[d.branch_code] = d; });
   }
 
   // ---- 店舗ごとに異なるフロアレイアウト(ゾーン配置のバリエーション) ----
@@ -1048,10 +1088,63 @@
     }).join('');
   }
 
+  // ---- タブ③: 店舗情報 ----
+  var storeInfoArea = document.getElementById('storeInfoArea');
+
+  function infoRow(label, value){
+    return '<div class="info-row"><span class="k">' + label + '</span><span class="v">' + (value || '-') + '</span></div>';
+  }
+
+  function renderStoreInfo(branchCode){
+    var d = STORE_DETAILS[branchCode];
+    if(!d){ storeInfoArea.innerHTML = '<div class="info-card"><div class="info-body">データがありません</div></div>'; return; }
+
+    storeInfoArea.innerHTML =
+      '<div class="info-card"><div class="info-title">基本情報</div><div class="info-body">' +
+        infoRow('住所', d.address) +
+        infoRow('売場面積', d.floor_area_sqm + ' ㎡') +
+        infoRow('総面積', d.total_area_sqm + ' ㎡') +
+        infoRow('収容人数(概算)', d.capacity + ' 人') +
+      '</div></div>' +
+
+      '<div class="info-card"><div class="info-title">防火・防災 / 古物商</div><div class="info-body">' +
+        infoRow('消防計画', d.fire_plan_status) +
+        infoRow('防火管理者', d.fire_manager) +
+        infoRow('担当消防署', d.fire_dept) +
+        infoRow('古物商 管理者', d.antique_dealer_manager) +
+      '</div></div>' +
+
+      '<div class="info-card"><div class="info-title">売場現況</div><div class="info-body">' +
+        infoRow('平面図整合性', d.floor_plan_consistency) +
+        infoRow('座席数(平面図/実際)', d.seat_counts) +
+        infoRow('備考', d.floor_notes) +
+        infoRow('相違点', d.discrepancies) +
+      '</div></div>' +
+
+      '<div class="info-card"><div class="info-title">バックヤード設備</div><div class="info-body">' +
+        infoRow('店舗ベース', d.backyard_type) +
+        infoRow('BY扉', d.backyard_door) +
+        infoRow('什器・家電', d.backyard_furniture) +
+        infoRow('保管庫・ロッカー', d.backyard_storage) +
+        infoRow('耐震対策', d.earthquake_measure) +
+      '</div></div>' +
+
+      '<div class="info-card"><div class="info-title">トイレ・更衣室・空調</div><div class="info-body">' +
+        infoRow('トイレ', d.toilet_info) +
+        infoRow('更衣室', d.changing_room) +
+        infoRow('エアコン', d.ac_notes) +
+      '</div></div>' +
+
+      '<div class="info-card wide"><div class="info-title">備考・要望</div><div class="info-body">' +
+        infoRow('', d.requests) +
+      '</div></div>';
+  }
+
   function renderForSelectedStore(){
     var branchCode = globalStoreSelect.value;
     renderFloorPlan(branchCode);
     renderEquipmentTable(branchCode);
+    renderStoreInfo(branchCode);
   }
 
   var alertTableBody = document.getElementById('alertTableBody');
