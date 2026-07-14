@@ -808,16 +808,16 @@
 
       <!-- Panel 2: Equipment list -->
       <div class="panel" id="panel2">
-        <div class="screen-note">画面イメージ②: 店舗を選択すると、その店舗の設備台帳が一覧表示されます。スプレッドシートを開かずに検索・確認できます。</div>
+        <div class="screen-note">画面イメージ②: 店舗を選択すると、売場現況・バックヤード設備・トイレ/更衣室/空調の情報が一覧表示されます。スプレッドシートを開かずに検索・確認できます。</div>
 
         <div class="table-toolbar">
-          <input type="text" id="eqSearch" placeholder="品番・設備名で検索" value="" />
+          <input type="text" id="eqSearch" placeholder="項目・内容で検索" value="" />
         </div>
 
         <div class="table-scroll">
           <table class="master">
             <thead>
-              <tr><th>品番</th><th>設備名</th><th>設置場所</th><th>導入年月</th><th>保証期間</th><th>次回交換目安</th><th>ステータス</th></tr>
+              <tr><th>分類</th><th>項目</th><th>内容</th></tr>
             </thead>
             <tbody id="eqTableBody"></tbody>
           </table>
@@ -826,7 +826,7 @@
 
       <!-- Panel 3: Store info -->
       <div class="panel" id="panel3">
-        <div class="screen-note">画面イメージ③: 店舗ごとの物件情報・防火防災・売場現況・バックヤード設備をまとめて確認できます(現行はExcelで個別管理)。</div>
+        <div class="screen-note">画面イメージ③: 店舗ごとの物件基本情報・防火防災・古物商管理者・備考要望を確認できます(現行はExcelで個別管理)。</div>
         <div id="storeInfoArea" class="info-grid"></div>
       </div>
 
@@ -1071,20 +1071,36 @@
     renderFloorPlanDetail(items, 0);
   }
 
-  // ---- タブ②: 店舗設備一覧 ----
+  // ---- タブ②: 店舗設備一覧(売場現況・バックヤード設備・トイレ/更衣室/空調) ----
   var eqSearch = document.getElementById('eqSearch');
   var eqTableBody = document.getElementById('eqTableBody');
 
+  function buildStoreEquipmentRows(d){
+    if(!d) return [];
+    return [
+      { category:'売場', item:'座席数(平面図/実際)', content:d.seat_counts },
+      { category:'売場', item:'平面図整合性', content:d.floor_plan_consistency },
+      { category:'売場', item:'備考', content:d.floor_notes },
+      { category:'売場', item:'相違点', content:d.discrepancies },
+      { category:'バックヤード', item:'店舗ベース', content:d.backyard_type },
+      { category:'バックヤード', item:'BY扉', content:d.backyard_door },
+      { category:'バックヤード', item:'什器・家電', content:d.backyard_furniture },
+      { category:'バックヤード', item:'保管庫・ロッカー', content:d.backyard_storage },
+      { category:'バックヤード', item:'耐震対策', content:d.earthquake_measure },
+      { category:'トイレ', item:'トイレ', content:d.toilet_info },
+      { category:'更衣室', item:'更衣室', content:d.changing_room },
+      { category:'空調', item:'エアコン', content:d.ac_notes }
+    ];
+  }
+
   function renderEquipmentTable(branchCode){
     var q = eqSearch.value.trim().toLowerCase();
-    var rows = EQUIPMENT.filter(function(e){ return e.branch === branchCode; });
+    var rows = buildStoreEquipmentRows(STORE_DETAILS[branchCode]);
     if(q){
-      rows = rows.filter(function(e){ return (e.code + e.name).toLowerCase().indexOf(q) !== -1; });
+      rows = rows.filter(function(r){ return (r.item + r.content).toLowerCase().indexOf(q) !== -1; });
     }
-    eqTableBody.innerHTML = rows.map(function(e){
-      var cls = e.alert ? ' class="alert-' + e.alert + '"' : '';
-      return '<tr' + cls + '><td class="mono">' + e.code + '</td><td>' + e.name + '</td><td>' + e.location + '</td>' +
-        '<td class="mono">' + e.install + '</td><td class="mono">' + e.warranty + '</td><td>' + e.next + '</td><td>' + e.status + '</td></tr>';
+    eqTableBody.innerHTML = rows.map(function(r){
+      return '<tr><td class="mono">' + r.category + '</td><td>' + r.item + '</td><td>' + (r.content || '-') + '</td></tr>';
     }).join('');
   }
 
@@ -1114,30 +1130,11 @@
         infoRow('古物商 管理者', d.antique_dealer_manager) +
       '</div></div>' +
 
-      '<div class="info-card"><div class="info-title">売場現況</div><div class="info-body">' +
-        infoRow('平面図整合性', d.floor_plan_consistency) +
-        infoRow('座席数(平面図/実際)', d.seat_counts) +
-        infoRow('備考', d.floor_notes) +
-        infoRow('相違点', d.discrepancies) +
-      '</div></div>' +
-
-      '<div class="info-card"><div class="info-title">バックヤード設備</div><div class="info-body">' +
-        infoRow('店舗ベース', d.backyard_type) +
-        infoRow('BY扉', d.backyard_door) +
-        infoRow('什器・家電', d.backyard_furniture) +
-        infoRow('保管庫・ロッカー', d.backyard_storage) +
-        infoRow('耐震対策', d.earthquake_measure) +
-      '</div></div>' +
-
-      '<div class="info-card"><div class="info-title">トイレ・更衣室・空調</div><div class="info-body">' +
-        infoRow('トイレ', d.toilet_info) +
-        infoRow('更衣室', d.changing_room) +
-        infoRow('エアコン', d.ac_notes) +
-      '</div></div>' +
-
       '<div class="info-card wide"><div class="info-title">備考・要望</div><div class="info-body">' +
         infoRow('', d.requests) +
-      '</div></div>';
+      '</div></div>' +
+
+      '<div class="info-card wide" style="border-style:dashed;"><div class="info-body" style="font-size:12px; color:var(--ink-soft);">売場現況・バックヤード設備・トイレ/更衣室/空調の詳細は「店舗設備一覧」タブでご確認いただけます。</div></div>';
   }
 
   function renderForSelectedStore(){
