@@ -513,6 +513,38 @@
   .fp-table-group .chr.e{ top:50%; right:1px; transform:translate(0,-50%); }
   .fp-table-group .chr.w{ top:50%; left:1px; transform:translate(0,-50%); }
 
+  /* ---- 座席実数アイコン(接客カウンター/待合椅子/ボックス席) ---- */
+  .fp-mini-counter{
+    position:absolute;
+    width:26px; height:12px;
+    background:repeating-linear-gradient(45deg, #EDEDE7, #EDEDE7 4px, #E2E2DA 4px, #E2E2DA 8px);
+    border:1.2px solid var(--ink-soft);
+    border-radius:1px;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    box-shadow:0 1px 2px rgba(0,0,0,.1);
+  }
+  .fp-single-chair{
+    position:absolute;
+    width:11px; height:11px;
+    background:#8A6B4C;
+    border:1.2px solid #3A2C1C;
+    border-radius:2px;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);
+  }
+  .fp-box-seat{
+    position:absolute;
+    width:22px; height:16px;
+    background:#E7D9C2;
+    border:1.5px solid #9C8A6C;
+    border-radius:3px;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);
+  }
+
   .fp-marker{
     position:absolute;
     transform:translate(-50%,-50%);
@@ -1032,10 +1064,27 @@
     });
   }
 
+  // count個のアイコンを、top0-top1 / left0-left1の帯の中に均等配置する
+  function layoutCluster(count, top0, top1, left0, left1, perRow){
+    var positions = [];
+    if(!count || count <= 0) return positions;
+    var rows = Math.max(1, Math.ceil(count / perRow));
+    for(var i=0;i<count;i++){
+      var row = Math.floor(i / perRow);
+      var colCount = Math.min(perRow, count - row*perRow);
+      var col = i % perRow;
+      var leftStep = (left1 - left0) / colCount;
+      var top = rows > 1 ? top0 + (top1 - top0) * (row / (rows - 1)) : (top0 + top1) / 2;
+      positions.push({ top: top, left: left0 + leftStep * (col + 0.5) });
+    }
+    return positions;
+  }
+
   function renderFloorPlan(branchCode){
     document.getElementById('fpBranchName').textContent = BRANCH_NAME[branchCode];
     var layout = STORE_LAYOUTS[branchCode];
-    var items = buildStoreEquipmentRows(STORE_DETAILS[branchCode]);
+    var d = STORE_DETAILS[branchCode];
+    var items = buildStoreEquipmentRows(d).filter(function(r){ return r.item !== '座席数(平面図/実際)'; });
 
     var zonesHtml = layout.zones.map(function(z){
       return '<div class="fp-zone" style="top:' + z.top + '%; left:' + z.left + '%; width:' + z.width + '%; height:' + z.height + '%;' +
@@ -1045,26 +1094,33 @@
     var DOOR_SVG = '<svg viewBox="0 0 28 28"><path d="M4 4 L4 24" stroke="#8A6B4C" stroke-width="2.5" fill="none"/>' +
       '<path d="M4 4 A20 20 0 0 1 24 24" stroke="var(--ink-soft)" stroke-width="1" fill="none" stroke-dasharray="2 2"/>' +
       '<path d="M4 4 L24 24" stroke="#8A6B4C" stroke-width="2.5" fill="none"/></svg>';
-    var doorsHtml = (layout.doors || []).map(function(d){
-      return '<div class="fp-furniture door" style="top:' + d.top + '%; left:' + d.left + '%;" title="出入口">' + DOOR_SVG + '</div>';
+    var doorsHtml = (layout.doors || []).map(function(dr){
+      return '<div class="fp-furniture door" style="top:' + dr.top + '%; left:' + dr.left + '%;" title="出入口">' + DOOR_SVG + '</div>';
     }).join('');
 
-    var countersHtml = (layout.counters || []).map(function(c){
-      return '<div class="fp-furniture counter" style="top:' + c.top + '%; left:' + c.left + '%; width:' + c.width + '%; height:' + c.height + '%;" title="' + c.label + '">' + c.label + '</div>';
-    }).join('');
+    // 座席の実数(0件は非表示)を、種類ごとに帯を分けてアイコン表示
+    var counterHtml = layoutCluster(d && d.counter_actual, 24, 34, 8, 92, 8)
+      .map(function(p){ return '<div class="fp-mini-counter" style="top:' + p.top + '%; left:' + p.left + '%;" title="接客カウンター"></div>'; }).join('');
 
-    var tablesHtml = (layout.tables || []).map(function(t){
-      return '<div class="fp-table-group" style="top:' + t.top + '%; left:' + t.left + '%;" title="テーブル・椅子">' +
-        '<div class="tbl"></div><div class="chr n"></div><div class="chr s"></div><div class="chr e"></div><div class="chr w"></div>' +
-        '</div>';
-    }).join('');
+    var tableHtml = layoutCluster(d && d.table_seat_actual, 44, 58, 10, 90, 4)
+      .map(function(p){
+        return '<div class="fp-table-group" style="top:' + p.top + '%; left:' + p.left + '%;" title="テーブル席">' +
+          '<div class="tbl"></div><div class="chr n"></div><div class="chr s"></div><div class="chr e"></div><div class="chr w"></div>' +
+          '</div>';
+      }).join('');
+
+    var waitingHtml = layoutCluster(d && d.waiting_seat_actual, 68, 80, 6, 94, 8)
+      .map(function(p){ return '<div class="fp-single-chair" style="top:' + p.top + '%; left:' + p.left + '%;" title="待合席"></div>'; }).join('');
+
+    var boxHtml = layoutCluster(d && d.box_seat_actual, 86, 94, 8, 92, 7)
+      .map(function(p){ return '<div class="fp-box-seat" style="top:' + p.top + '%; left:' + p.left + '%;" title="ボックス席"></div>'; }).join('');
 
     var markersHtml = items.map(function(e, idx){
       var pos = GRID_SLOTS[idx] || { top:50, left:50 };
       return '<div class="fp-marker" data-idx="' + idx + '" tabindex="0" title="' + e.item + '" style="top:' + pos.top + '%; left:' + pos.left + '%;">' + e.item + '</div>';
     }).join('');
 
-    floorplanArea.innerHTML = zonesHtml + doorsHtml + countersHtml + tablesHtml + markersHtml;
+    floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + tableHtml + waitingHtml + boxHtml + markersHtml;
 
     floorplanArea.querySelectorAll('.fp-marker').forEach(function(m){
       m.addEventListener('click', function(){ renderFloorPlanDetail(items, Number(m.getAttribute('data-idx'))); });
