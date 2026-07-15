@@ -1001,14 +1001,14 @@
     },
     "BR-03": {
       zones:[
-        { label:"エントランス", top:4, left:38, width:24, height:14 },
-        { label:"バックヤード", top:4, left:64, width:33, height:40 },
-        { label:"売場", top:20, left:3, width:33, height:74, shade:true },
-        { label:"レジ", top:46, left:64, width:33, height:34 }
+        { label:"バックヤード", top:2, left:2, width:96, height:22 },
+        { label:"売場", top:26, left:2, width:96, height:70, shade:true }
       ],
-      doors:[ { top:4, left:42 } ],
-      counters:[ { top:55, left:80, width:20, height:8, label:"カウンター" } ],
-      tables:[ { top:35, left:19 }, { top:55, left:19 }, { top:75, left:19 } ]
+      doors:[ { top:24, left:20 } ],
+      // 実際の図面(横手店)に合わせた配置(コンシェルジュカウンター周辺の待合椅子・什器列・テーブル席)
+      tablePositions:[ { top:38, left:42 }, { top:38, left:58 }, { top:75, left:46 } ],
+      waitingPositions:[ { top:45, left:24 }, { top:52, left:33 }, { top:58, left:26 } ],
+      boxPositions:[ { top:34, left:10 }, { top:42, left:10 }, { top:50, left:10 }, { top:58, left:10 }, { top:66, left:10 } ]
     },
     "BR-04": {
       zones:[
