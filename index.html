@@ -973,14 +973,16 @@
   var STORE_LAYOUTS = {
     "BR-01": {
       zones:[
-        { label:"エントランス", top:4, left:3, width:20, height:16 },
-        { label:"レジ", top:4, left:26, width:22, height:16 },
-        { label:"売場", top:24, left:3, width:66, height:58, shade:true },
-        { label:"バックヤード", top:4, left:75, width:22, height:78 }
+        { label:"エントランス", top:2, left:2, width:22, height:17 },
+        { label:"レジ", top:20, left:2, width:22, height:48 },
+        { label:"売場", top:20, left:26, width:72, height:76, shade:true },
+        { label:"バックヤード", top:2, left:50, width:48, height:17 }
       ],
-      doors:[ { top:12, left:4 } ],
-      counters:[ { top:10, left:37, width:18, height:8, label:"カウンター" } ],
-      tables:[ { top:45, left:20 }, { top:45, left:50 }, { top:65, left:35 } ]
+      doors:[ { top:9, left:8 } ],
+      // 実際の図面(イオンモール大曲店)に合わせた配置
+      counterPositions:[ { top:45, left:30 }, { top:55, left:30 }, { top:65, left:30 } ],
+      tablePositions:[ { top:52, left:58 }, { top:52, left:80 } ],
+      waitingPositions:[ { top:74, left:24 }, { top:80, left:24 }, { top:74, left:34 }, { top:80, left:34 }, { top:74, left:44 }, { top:80, left:44 } ]
     },
     "BR-02": {
       zones:[
@@ -1098,18 +1100,24 @@
       return '<div class="fp-furniture door" style="top:' + dr.top + '%; left:' + dr.left + '%;" title="出入口">' + DOOR_SVG + '</div>';
     }).join('');
 
-    // 座席の実数(0件は非表示)を、種類ごとに帯を分けてアイコン表示
-    var counterHtml = layoutCluster(d && d.counter_actual, 24, 34, 8, 92, 8)
+    // 座席の実数(0件は非表示)を、種類ごとに帯を分けてアイコン表示(店舗固有の配置指定があればそれを優先)
+    var counterCount = (d && d.counter_actual) || 0;
+    var counterPos = layout.counterPositions ? layout.counterPositions.slice(0, counterCount) : layoutCluster(counterCount, 24, 34, 8, 92, 8);
+    var counterHtml = counterPos
       .map(function(p){ return '<div class="fp-mini-counter" style="top:' + p.top + '%; left:' + p.left + '%;" title="接客カウンター"></div>'; }).join('');
 
-    var tableHtml = layoutCluster(d && d.table_seat_actual, 44, 58, 10, 90, 4)
+    var tableCount = (d && d.table_seat_actual) || 0;
+    var tablePos = layout.tablePositions ? layout.tablePositions.slice(0, tableCount) : layoutCluster(tableCount, 44, 58, 10, 90, 4);
+    var tableHtml = tablePos
       .map(function(p){
         return '<div class="fp-table-group" style="top:' + p.top + '%; left:' + p.left + '%;" title="テーブル席">' +
           '<div class="tbl"></div><div class="chr n"></div><div class="chr s"></div><div class="chr e"></div><div class="chr w"></div>' +
           '</div>';
       }).join('');
 
-    var waitingHtml = layoutCluster(d && d.waiting_seat_actual, 68, 80, 6, 94, 8)
+    var waitingCount = (d && d.waiting_seat_actual) || 0;
+    var waitingPos = layout.waitingPositions ? layout.waitingPositions.slice(0, waitingCount) : layoutCluster(waitingCount, 68, 80, 6, 94, 8);
+    var waitingHtml = waitingPos
       .map(function(p){ return '<div class="fp-single-chair" style="top:' + p.top + '%; left:' + p.left + '%;" title="待合席"></div>'; }).join('');
 
     var boxHtml = layoutCluster(d && d.box_seat_actual, 86, 94, 8, 92, 7)
