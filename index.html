@@ -544,35 +544,15 @@
     pointer-events:none;
     box-shadow:0 1px 2px rgba(0,0,0,.15);
   }
-
-  .fp-marker{
+  .fp-appliance{
     position:absolute;
+    width:12px; height:12px;
+    background:#B7C9C2;
+    border:1.5px solid #5E7A70;
+    border-radius:50%;
     transform:translate(-50%,-50%);
-    max-width:88px;
-    padding:3px 8px;
-    border-radius:11px;
-    background:var(--teal-deep);
-    color:#fff;
-    font-family:var(--font-jp);
-    font-size:10.5px;
-    font-weight:700;
-    line-height:1.3;
-    text-align:center;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    border:2px solid var(--surface);
-    box-shadow:0 1px 3px rgba(15,64,56,.35);
-    z-index:3;
-  }
-  .fp-marker:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
-  .fp-marker.active-marker{
-    background:var(--gold);
-    color:var(--teal-deep);
+    pointer-events:none;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);
   }
 
   .eq-detail{
@@ -1043,38 +1023,26 @@
 
   var ALERT_LABEL = { warn:"警告", danger:"危険" };
   var BRANCH_NAME = {};
-  var CIRCLE_NUM = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫"];
 
   // ---- グローバル店舗選択(タブ①②に連動) ----
   var globalStoreSelect = document.getElementById('globalStoreSelect');
 
-  // ---- タブ①: 店舗レイアウト図(店舗設備一覧と同じ内容をマーカー表示) ----
-  var CATEGORY_BADGE = { '売場':'badge', 'バックヤード':'badge gold', 'トイレ':'badge', '更衣室':'badge', '空調':'badge' };
+  // ---- タブ①: 店舗レイアウト図 ----
   var floorplanArea = document.getElementById('floorplanArea');
   var eqDetailArea = document.getElementById('eqDetailArea');
 
-  // 12項目を4列×3行の格子に均等配置(重なり防止)
-  var GRID_COLS = [10, 36, 62, 88];
-  var GRID_ROWS = [14, 50, 86];
-  var GRID_SLOTS = [];
-  GRID_ROWS.forEach(function(r){ GRID_COLS.forEach(function(c){ GRID_SLOTS.push({top:r, left:c}); }); });
-
-  function renderFloorPlanDetail(items, idx){
-    var e = items[idx];
-    var badgeClass = CATEGORY_BADGE[e.category] || 'badge';
+  function renderFloorPlanDetail(d){
     eqDetailArea.innerHTML =
       '<div class="eq-detail">' +
-        '<div class="eq-target">選択中の項目<strong>' + CIRCLE_NUM[idx] + ' ' + e.item + '</strong></div>' +
-        '<span class="' + badgeClass + '">' + e.category + '</span>' +
+        '<div class="eq-target">バックヤード設備数<strong>(BY一覧より)</strong></div>' +
         '<div class="eq-grid">' +
-          '<div class="eq-item" style="grid-column:1 / -1;"><div class="k">内容</div><div class="v" style="font-size:13px; font-weight:600; white-space:normal;">' + (e.content || '-') + '</div></div>' +
+          '<div class="eq-item"><div class="k">机</div><div class="v">' + ((d && d.by_desk_count) || 0) + ' 台</div></div>' +
+          '<div class="eq-item"><div class="k">椅子</div><div class="v">' + ((d && d.by_chair_count) || 0) + ' 脚</div></div>' +
+          '<div class="eq-item"><div class="k">ロッカー・保管庫</div><div class="v">' + ((d && d.by_storage_count) || 0) + ' 個</div></div>' +
+          '<div class="eq-item"><div class="k">家電・備品</div><div class="v">' + ((d && d.by_appliance_count) || 0) + ' 個</div></div>' +
         '</div>' +
-        '<div class="callout"><span class="dot">→</span><span>「店舗設備一覧」タブと同じ内容を、レイアウト図上のマーカーからも確認できます。</span></div>' +
+        '<div class="callout"><span class="dot">→</span><span>バックヤードの枠内に、机・椅子・ロッカー・家電を実数分アイコン表示しています。</span></div>' +
       '</div>';
-
-    floorplanArea.querySelectorAll('.fp-marker').forEach(function(m){
-      m.classList.toggle('active-marker', Number(m.getAttribute('data-idx')) === idx);
-    });
   }
 
   // count個のアイコンを、top0-top1 / left0-left1の帯の中に均等配置する
@@ -1093,11 +1061,25 @@
     return positions;
   }
 
+  // ゾーン(バックヤード等)の四角の中を、種類ごとに縦4分割した帯に個数分配置する
+  function layoutInZoneBand(count, zone, bandIndex, bandCount, perRow){
+    if(!zone || !count) return [];
+    var padX = zone.width * 0.10;
+    var padY = zone.height * 0.08;
+    var innerTop = zone.top + padY;
+    var innerHeight = zone.height - padY * 2;
+    var bandHeight = innerHeight / bandCount;
+    var top0 = innerTop + bandHeight * bandIndex + bandHeight * 0.18;
+    var top1 = innerTop + bandHeight * (bandIndex + 1) - bandHeight * 0.18;
+    var left0 = zone.left + padX;
+    var left1 = zone.left + zone.width - padX;
+    return layoutCluster(count, top0, top1, left0, left1, perRow);
+  }
+
   function renderFloorPlan(branchCode){
     document.getElementById('fpBranchName').textContent = BRANCH_NAME[branchCode];
     var layout = STORE_LAYOUTS[branchCode];
     var d = STORE_DETAILS[branchCode];
-    var items = buildStoreEquipmentRows(d).filter(function(r){ return r.item !== '座席数(平面図/実際)'; });
 
     var zonesHtml = layout.zones.map(function(z){
       return '<div class="fp-zone" style="top:' + z.top + '%; left:' + z.left + '%; width:' + z.width + '%; height:' + z.height + '%;' +
@@ -1136,18 +1118,29 @@
     var boxHtml = boxPos
       .map(function(p){ return '<div class="fp-box-seat" style="top:' + p.top + '%; left:' + p.left + '%;" title="ボックス席"></div>'; }).join('');
 
-    var markersHtml = items.map(function(e, idx){
-      var pos = GRID_SLOTS[idx] || { top:50, left:50 };
-      return '<div class="fp-marker" data-idx="' + idx + '" tabindex="0" title="' + e.item + '" style="top:' + pos.top + '%; left:' + pos.left + '%;">' + e.item + '</div>';
-    }).join('');
+    // バックヤード備品(BY一覧シートより): バックヤードの枠内を4段に分けて種類ごとに配置
+    var byZone = layout.zones.filter(function(z){ return z.label === 'バックヤード'; })[0];
 
-    floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + tableHtml + waitingHtml + boxHtml + markersHtml;
+    var deskCount = (d && d.by_desk_count) || 0;
+    var deskHtml = layoutInZoneBand(deskCount, byZone, 0, 4, 6)
+      .map(function(p){ return '<div class="fp-mini-counter" style="top:' + p.top + '%; left:' + p.left + '%;" title="机"></div>'; }).join('');
 
-    floorplanArea.querySelectorAll('.fp-marker').forEach(function(m){
-      m.addEventListener('click', function(){ renderFloorPlanDetail(items, Number(m.getAttribute('data-idx'))); });
-    });
+    var chairCount = (d && d.by_chair_count) || 0;
+    var chairHtml = layoutInZoneBand(chairCount, byZone, 1, 4, 6)
+      .map(function(p){ return '<div class="fp-single-chair" style="top:' + p.top + '%; left:' + p.left + '%;" title="椅子"></div>'; }).join('');
 
-    renderFloorPlanDetail(items, 0);
+    var storageCount = (d && d.by_storage_count) || 0;
+    var storageHtml = layoutInZoneBand(storageCount, byZone, 2, 4, 6)
+      .map(function(p){ return '<div class="fp-box-seat" style="top:' + p.top + '%; left:' + p.left + '%;" title="ロッカー・保管庫"></div>'; }).join('');
+
+    var applianceCount = (d && d.by_appliance_count) || 0;
+    var applianceHtml = layoutInZoneBand(applianceCount, byZone, 3, 4, 6)
+      .map(function(p){ return '<div class="fp-appliance" style="top:' + p.top + '%; left:' + p.left + '%;" title="家電・備品"></div>'; }).join('');
+
+    floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + tableHtml + waitingHtml + boxHtml +
+      deskHtml + chairHtml + storageHtml + applianceHtml;
+
+    renderFloorPlanDetail(d);
   }
 
   // ---- タブ②: 店舗設備一覧(売場現況・バックヤード設備・トイレ/更衣室/空調) ----
