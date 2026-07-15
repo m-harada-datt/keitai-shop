@@ -986,14 +986,18 @@
     },
     "BR-02": {
       zones:[
-        { label:"エントランス", top:4, left:75, width:22, height:16 },
-        { label:"レジ", top:22, left:75, width:22, height:16 },
-        { label:"売場", top:4, left:3, width:68, height:58, shade:true },
-        { label:"バックヤード", top:66, left:3, width:94, height:30 }
+        { label:"バックヤード", top:2, left:2, width:96, height:28 },
+        { label:"売場", top:32, left:2, width:96, height:64, shade:true }
       ],
-      doors:[ { top:12, left:96 } ],
-      counters:[ { top:29, left:86, width:18, height:8, label:"カウンター" } ],
-      tables:[ { top:20, left:20 }, { top:20, left:50 }, { top:40, left:35 } ]
+      doors:[ { top:20, left:3 } ],
+      // 実際の図面(イオンタウン大曲福田店)に合わせた配置
+      tablePositions:[ { top:34, left:10 }, { top:34, left:28 }, { top:78, left:10 } ],
+      waitingPositions:[
+        { top:38, left:44 }, { top:38, left:56 }, { top:38, left:68 }, { top:38, left:80 },
+        { top:47, left:44 }, { top:47, left:56 }, { top:47, left:68 }, { top:47, left:80 },
+        { top:60, left:50 }, { top:60, left:62 }, { top:60, left:74 }, { top:60, left:86 }
+      ],
+      boxPositions:[ { top:70, left:72 }, { top:70, left:88 }, { top:84, left:72 }, { top:84, left:88 } ]
     },
     "BR-03": {
       zones:[
@@ -1120,7 +1124,9 @@
     var waitingHtml = waitingPos
       .map(function(p){ return '<div class="fp-single-chair" style="top:' + p.top + '%; left:' + p.left + '%;" title="待合席"></div>'; }).join('');
 
-    var boxHtml = layoutCluster(d && d.box_seat_actual, 86, 94, 8, 92, 7)
+    var boxCount = (d && d.box_seat_actual) || 0;
+    var boxPos = layout.boxPositions ? layout.boxPositions.slice(0, boxCount) : layoutCluster(boxCount, 86, 94, 8, 92, 7);
+    var boxHtml = boxPos
       .map(function(p){ return '<div class="fp-box-seat" style="top:' + p.top + '%; left:' + p.left + '%;" title="ボックス席"></div>'; }).join('');
 
     var markersHtml = items.map(function(e, idx){
