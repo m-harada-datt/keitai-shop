@@ -415,8 +415,36 @@
   .badge.red::before{color:var(--red);}
 
   /* ---- Floor plan mock (Tab1) ---- */
-  .floorplan-mock{display:grid; grid-template-columns:1.4fr 1fr; gap:24px; align-items:start;}
-  @media (max-width:840px){ .floorplan-mock{grid-template-columns:1fr;} }
+  .floorplan-mock{display:block;}
+
+  .eq-modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,30,25,.4);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    padding:24px;
+  }
+  .eq-modal-overlay.open{display:flex;}
+  .eq-modal{
+    width:min(420px, 100%);
+    max-height:80vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .eq-modal .mock-body{overflow-y:auto;}
+  .eq-modal-close{
+    background:transparent;
+    border:none;
+    color:#EAF1EF;
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+    padding:2px 6px;
+  }
+  .eq-modal-close:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
 
   .mock-card{
     border:1px solid var(--line-soft);
@@ -489,7 +517,7 @@
     width:52px;
     height:52px;
     transform:translate(-50%,-50%);
-    pointer-events:none;
+    cursor:pointer;
   }
   .fp-table-group .tbl{
     position:absolute;
@@ -521,7 +549,7 @@
     border:1.2px solid var(--ink-soft);
     border-radius:1px;
     transform:translate(-50%,-50%);
-    pointer-events:none;
+    cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.1);
   }
   .fp-single-chair{
@@ -531,7 +559,7 @@
     border:1.2px solid #3A2C1C;
     border-radius:2px;
     transform:translate(-50%,-50%);
-    pointer-events:none;
+    cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.15);
   }
   .fp-box-seat{
@@ -541,7 +569,7 @@
     border:1.5px solid #9C8A6C;
     border-radius:3px;
     transform:translate(-50%,-50%);
-    pointer-events:none;
+    cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.15);
   }
   .fp-appliance{
@@ -551,7 +579,7 @@
     border:1.5px solid #5E7A70;
     border-radius:50%;
     transform:translate(-50%,-50%);
-    pointer-events:none;
+    cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.15);
   }
 
@@ -801,7 +829,7 @@
 
       <!-- Panel 1: Floor plan -->
       <div class="panel" id="panel1">
-        <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替えると、レイアウト図とバックヤード設備数(右側)が自動で切り替わります。🚪は出入口、カウンターやテーブル・椅子・バックヤード内の机/椅子/ロッカー/家電は什器のおおまかな配置イメージです(実寸ではありません)。</div>
+        <div class="screen-note">画面イメージ①: 上部の「表示する店舗」で店舗を切り替えると、レイアウト図が切り替わります。🚪は出入口、カウンターやテーブル・椅子・バックヤード内の机/椅子/ロッカー/家電は什器のおおまかな配置イメージです(実寸ではありません)。図面上の什器アイコンをクリックすると、設備情報がポップアップで表示されます。</div>
 
         <div class="floorplan-mock">
           <div class="mock-card">
@@ -810,11 +838,16 @@
               <div class="floorplan" id="floorplanArea"></div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="mock-card eq-detail-wrap">
-            <div class="mock-titlebar"><span>設備情報</span><span>自動表示</span></div>
-            <div class="mock-body" id="eqDetailArea"></div>
+      <div class="eq-modal-overlay" id="eqModalOverlay">
+        <div class="eq-modal mock-card">
+          <div class="mock-titlebar">
+            <span>設備情報</span>
+            <button type="button" class="eq-modal-close" id="eqModalClose" aria-label="閉じる">×</button>
           </div>
+          <div class="mock-body" id="eqDetailArea"></div>
         </div>
       </div>
 
@@ -1030,6 +1063,25 @@
   // ---- タブ①: 店舗レイアウト図 ----
   var floorplanArea = document.getElementById('floorplanArea');
   var eqDetailArea = document.getElementById('eqDetailArea');
+  var eqModalOverlay = document.getElementById('eqModalOverlay');
+  var currentFloorplanDetail = null;
+
+  function openEqModal(){
+    renderFloorPlanDetail(currentFloorplanDetail);
+    eqModalOverlay.classList.add('open');
+  }
+  function closeEqModal(){
+    eqModalOverlay.classList.remove('open');
+  }
+  floorplanArea.addEventListener('click', function(e){
+    var el = e.target.closest('.fp-mini-counter, .fp-single-chair, .fp-box-seat, .fp-appliance, .fp-table-group');
+    if(!el) return;
+    openEqModal();
+  });
+  document.getElementById('eqModalClose').addEventListener('click', closeEqModal);
+  eqModalOverlay.addEventListener('click', function(e){
+    if(e.target === eqModalOverlay) closeEqModal();
+  });
 
   function renderFloorPlanDetail(d){
     eqDetailArea.innerHTML =
@@ -1140,7 +1192,8 @@
 
     floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + tableHtml + waitingHtml + boxHtml + backyardHtml;
 
-    renderFloorPlanDetail(d);
+    currentFloorplanDetail = d;
+    closeEqModal();
   }
 
   // ---- タブ②: 店舗設備一覧(売場現況・バックヤード設備・トイレ/更衣室/空調) ----
