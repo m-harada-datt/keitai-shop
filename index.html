@@ -1061,14 +1061,19 @@
     return positions;
   }
 
-  // ゾーン(バックヤード等)の四角の中全体に、個数分のアイコンを1つのグリッドとして均等配置する(zone.labelの文字と被らないよう上部を確保)
-  function layoutInZone(count, zone, perRow){
+  // ゾーン(バックヤード等)の四角の中全体に、個数分のアイコンを1つのグリッドとして均等配置する
+  // (zone.labelの文字と被らないよう上部を確保しつつ、縦に収まる行数から自動で列数を決める)
+  function layoutInZone(count, zone){
     if(!zone || !count) return [];
     var padX = zone.width * 0.10;
     var padBottom = zone.height * 0.08;
-    var labelClearance = 7; // ゾーンラベル文字の高さ分(コンテナ比%)を確保
+    var labelClearance = 9; // ゾーンラベル文字の高さ分(コンテナ比%)を確保
     var innerTop = zone.top + Math.max(zone.height * 0.08, labelClearance);
     var innerBottom = zone.top + zone.height - padBottom;
+    var innerHeight = Math.max(innerBottom - innerTop, 0);
+    var minRowGap = 6; // 行間が詰まりすぎないための最小間隔(コンテナ比%)
+    var maxRows = Math.max(1, Math.floor(innerHeight / minRowGap));
+    var perRow = Math.ceil(count / maxRows);
     var left0 = zone.left + padX;
     var left1 = zone.left + zone.width - padX;
     return layoutCluster(count, innerTop, innerBottom, left0, left1, perRow);
@@ -1127,8 +1132,7 @@
     pushByItems((d && d.by_storage_count) || 0, 'fp-box-seat', 'ロッカー・保管庫');
     pushByItems((d && d.by_appliance_count) || 0, 'fp-appliance', '家電・備品');
 
-    var byPerRow = byZone ? Math.min(8, Math.max(2, Math.round(byZone.width / 10))) : 6;
-    var byPositions = layoutInZone(byItems.length, byZone, byPerRow);
+    var byPositions = layoutInZone(byItems.length, byZone);
     var backyardHtml = byItems.map(function(item, idx){
       var p = byPositions[idx] || { top:50, left:50 };
       return '<div class="' + item.cls + '" style="top:' + p.top + '%; left:' + p.left + '%;" title="' + item.title + '"></div>';
