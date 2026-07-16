@@ -1061,13 +1061,14 @@
     return positions;
   }
 
-  // ゾーン(バックヤード等)の四角の中を、種類ごとに縦4分割した帯に個数分配置する
+  // ゾーン(バックヤード等)の四角の中を、種類ごとに縦分割した帯に個数分配置する(zone.labelの文字と被らないよう上部を確保)
   function layoutInZoneBand(count, zone, bandIndex, bandCount, perRow){
     if(!zone || !count) return [];
     var padX = zone.width * 0.10;
-    var padY = zone.height * 0.08;
-    var innerTop = zone.top + padY;
-    var innerHeight = zone.height - padY * 2;
+    var padBottom = zone.height * 0.08;
+    var labelClearance = 7; // ゾーンラベル文字の高さ分(コンテナ比%)を確保
+    var innerTop = zone.top + Math.max(zone.height * 0.08, labelClearance);
+    var innerHeight = zone.height - (innerTop - zone.top) - padBottom;
     var bandHeight = innerHeight / bandCount;
     var top0 = innerTop + bandHeight * bandIndex + bandHeight * 0.18;
     var top1 = innerTop + bandHeight * (bandIndex + 1) - bandHeight * 0.18;
@@ -1118,27 +1119,23 @@
     var boxHtml = boxPos
       .map(function(p){ return '<div class="fp-box-seat" style="top:' + p.top + '%; left:' + p.left + '%;" title="ボックス席"></div>'; }).join('');
 
-    // バックヤード備品(BY一覧シートより): バックヤードの枠内を4段に分けて種類ごとに配置
+    // バックヤード備品(BY一覧シートより): バックヤードの枠内に、実数があるものだけ種類ごとに段を分けて配置
     var byZone = layout.zones.filter(function(z){ return z.label === 'バックヤード'; })[0];
+    var byCategories = [
+      { count:(d && d.by_desk_count) || 0, cls:'fp-mini-counter', title:'机' },
+      { count:(d && d.by_chair_count) || 0, cls:'fp-single-chair', title:'椅子' },
+      { count:(d && d.by_storage_count) || 0, cls:'fp-box-seat', title:'ロッカー・保管庫' },
+      { count:(d && d.by_appliance_count) || 0, cls:'fp-appliance', title:'家電・備品' }
+    ].filter(function(c){ return c.count > 0; });
 
-    var deskCount = (d && d.by_desk_count) || 0;
-    var deskHtml = layoutInZoneBand(deskCount, byZone, 0, 4, 6)
-      .map(function(p){ return '<div class="fp-mini-counter" style="top:' + p.top + '%; left:' + p.left + '%;" title="机"></div>'; }).join('');
+    var byPerRow = byZone ? Math.min(6, Math.max(2, Math.round(byZone.width / 12))) : 6;
+    var backyardHtml = byCategories.map(function(c, idx){
+      return layoutInZoneBand(c.count, byZone, idx, byCategories.length, byPerRow)
+        .map(function(p){ return '<div class="' + c.cls + '" style="top:' + p.top + '%; left:' + p.left + '%;" title="' + c.title + '"></div>'; })
+        .join('');
+    }).join('');
 
-    var chairCount = (d && d.by_chair_count) || 0;
-    var chairHtml = layoutInZoneBand(chairCount, byZone, 1, 4, 6)
-      .map(function(p){ return '<div class="fp-single-chair" style="top:' + p.top + '%; left:' + p.left + '%;" title="椅子"></div>'; }).join('');
-
-    var storageCount = (d && d.by_storage_count) || 0;
-    var storageHtml = layoutInZoneBand(storageCount, byZone, 2, 4, 6)
-      .map(function(p){ return '<div class="fp-box-seat" style="top:' + p.top + '%; left:' + p.left + '%;" title="ロッカー・保管庫"></div>'; }).join('');
-
-    var applianceCount = (d && d.by_appliance_count) || 0;
-    var applianceHtml = layoutInZoneBand(applianceCount, byZone, 3, 4, 6)
-      .map(function(p){ return '<div class="fp-appliance" style="top:' + p.top + '%; left:' + p.left + '%;" title="家電・備品"></div>'; }).join('');
-
-    floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + tableHtml + waitingHtml + boxHtml +
-      deskHtml + chairHtml + storageHtml + applianceHtml;
+    floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + tableHtml + waitingHtml + boxHtml + backyardHtml;
 
     renderFloorPlanDetail(d);
   }
