@@ -1246,11 +1246,33 @@
   // ---- タブ②: 店舗設備一覧(図面クリックで表示される備品情報) ----
   var eqSearch = document.getElementById('eqSearch');
 
-  // 図面上のオブジェクトをクリックすると出てくる備品情報(fixture_itemsテーブル)を、ポップアップと同じ列構成+店舗列で一覧表示
+  // 選択中の店舗の図面に実際に登場するオブジェクト名だけを抽出する
+  // (BR-01のような画像モードの店舗はhotspotsの内訳、それ以外は実数(>0)のある種類のみ)
+  function getRelevantFixtureNames(branchCode){
+    var layout = STORE_LAYOUTS[branchCode];
+    var names = {};
+    if(layout && layout.hotspots){
+      layout.hotspots.forEach(function(h){ names[h.title] = true; });
+      return Object.keys(names);
+    }
+    var d = STORE_DETAILS[branchCode] || {};
+    if((d.counter_actual) > 0) names['接客カウンター'] = true;
+    if((d.table_seat_actual) > 0) names['テーブル席'] = true;
+    if((d.waiting_seat_actual) > 0) names['待合席'] = true;
+    if((d.box_seat_actual) > 0) names['ボックス席'] = true;
+    if((d.by_desk_count) > 0) names['机'] = true;
+    if((d.by_chair_count) > 0) names['椅子'] = true;
+    if((d.by_storage_count) > 0) names['ロッカー・保管庫'] = true;
+    if((d.by_appliance_count) > 0) names['家電・備品'] = true;
+    return Object.keys(names);
+  }
+
+  // 図面上のオブジェクトをクリックすると出てくる備品情報(fixture_itemsテーブル)を、選択中の店舗の図面にあるものだけ一覧表示
   var fixtureTableBody = document.getElementById('fixtureTableBody');
   function renderFixtureTable(branchCode){
     var q = eqSearch.value.trim().toLowerCase();
-    var names = Object.keys(FIXTURE_ITEMS);
+    var relevant = getRelevantFixtureNames(branchCode);
+    var names = Object.keys(FIXTURE_ITEMS).filter(function(name){ return relevant.indexOf(name) !== -1; });
     if(q){
       names = names.filter(function(name){ return name.toLowerCase().indexOf(q) !== -1; });
     }
