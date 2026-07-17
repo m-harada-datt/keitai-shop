@@ -1249,7 +1249,7 @@
 
   function buildStoreEquipmentRows(d){
     if(!d) return [];
-    return [
+    var rows = [
       { category:'売場', item:'座席数(平面図/実際)', content:d.seat_counts },
       { category:'売場', item:'平面図整合性', content:d.floor_plan_consistency },
       { category:'売場', item:'備考', content:d.floor_notes },
@@ -1263,6 +1263,16 @@
       { category:'更衣室', item:'更衣室', content:d.changing_room },
       { category:'空調', item:'エアコン', content:d.ac_notes }
     ];
+    // 図面上のオブジェクトをクリックすると出てくる備品情報(fixture_itemsテーブル)も同じ一覧に追加
+    Object.keys(FIXTURE_ITEMS).forEach(function(name){
+      var f = FIXTURE_ITEMS[name];
+      rows.push({
+        category: f.category,
+        item: name,
+        content: '品番:' + f.code + '、購入日:' + f.purchase + '、保証期限:' + f.warranty + '、交換目安日:' + f.replace
+      });
+    });
+    return rows;
   }
 
   function renderEquipmentTable(branchCode){
