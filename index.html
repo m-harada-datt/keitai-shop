@@ -998,16 +998,15 @@
   var STORE_LAYOUTS = {
     "BR-01": {
       zones:[
-        { label:"エントランス", top:2, left:2, width:22, height:17 },
-        { label:"レジ", top:20, left:2, width:22, height:48 },
-        { label:"売場", top:20, left:26, width:72, height:76, shade:true },
-        { label:"バックヤード", top:2, left:50, width:48, height:17 }
+        { label:"バックヤード", top:2, left:2, width:96, height:17 },
+        { label:"レジ", top:21, left:2, width:22, height:47 },
+        { label:"売場", top:21, left:26, width:72, height:71, shade:true }
       ],
-      doors:[ { top:9, left:8 } ],
-      // 実際の図面(イオンモール大曲店)に合わせた配置
-      counterPositions:[ { top:45, left:30 }, { top:55, left:30 }, { top:65, left:30 } ],
-      tablePositions:[ { top:52, left:58 }, { top:52, left:80 } ],
-      waitingPositions:[ { top:74, left:24 }, { top:80, left:24 }, { top:74, left:34 }, { top:80, left:34 }, { top:74, left:44 }, { top:80, left:44 } ]
+      doors:[ { top:11, left:4 } ],
+      // 実際の図面(イオンモール大曲店・CAD平面図)に合わせた配置: L字カウンター+テーブル席2卓
+      counterPositions:[ { top:42, left:29 }, { top:52, left:29 }, { top:61, left:34 } ],
+      tablePositions:[ { top:44, left:56 }, { top:44, left:78 } ],
+      waitingPositions:[ { top:78, left:34 }, { top:84, left:34 }, { top:78, left:44 }, { top:84, left:44 }, { top:78, left:54 }, { top:84, left:54 } ]
     },
     "BR-02": {
       zones:[
