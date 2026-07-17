@@ -846,26 +846,16 @@
 
       <!-- Panel 2: Equipment list -->
       <div class="panel" id="panel2">
-        <div class="screen-note">画面イメージ②: 店舗を選択すると、売場現況・バックヤード設備・トイレ/更衣室/空調の情報が一覧表示されます。スプレッドシートを開かずに検索・確認できます。</div>
+        <div class="screen-note">画面イメージ②: 店舗を選択すると、図面上のオブジェクトをクリックすると表示される備品情報が一覧表示されます。スプレッドシートを開かずに検索・確認できます。</div>
 
         <div class="table-toolbar">
-          <input type="text" id="eqSearch" placeholder="項目・内容で検索" value="" />
+          <input type="text" id="eqSearch" placeholder="品名・品番で検索" value="" />
         </div>
 
         <div class="table-scroll">
           <table class="master">
             <thead>
-              <tr><th>分類</th><th>項目</th><th>内容</th></tr>
-            </thead>
-            <tbody id="eqTableBody"></tbody>
-          </table>
-        </div>
-
-        <h3 style="margin:28px 0 12px; font-size:15px;">図面クリックで表示される備品情報(全店舗共通)</h3>
-        <div class="table-scroll">
-          <table class="master">
-            <thead>
-              <tr><th>分類</th><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th></tr>
+              <tr><th>店舗</th><th>分類</th><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th></tr>
             </thead>
             <tbody id="fixtureTableBody"></tbody>
           </table>
@@ -1253,42 +1243,12 @@
     closeEqModal();
   }
 
-  // ---- タブ②: 店舗設備一覧(売場現況・バックヤード設備・トイレ/更衣室/空調) ----
+  // ---- タブ②: 店舗設備一覧(図面クリックで表示される備品情報) ----
   var eqSearch = document.getElementById('eqSearch');
-  var eqTableBody = document.getElementById('eqTableBody');
 
-  function buildStoreEquipmentRows(d){
-    if(!d) return [];
-    return [
-      { category:'売場', item:'座席数(平面図/実際)', content:d.seat_counts },
-      { category:'売場', item:'平面図整合性', content:d.floor_plan_consistency },
-      { category:'売場', item:'備考', content:d.floor_notes },
-      { category:'売場', item:'相違点', content:d.discrepancies },
-      { category:'バックヤード', item:'店舗ベース', content:d.backyard_type },
-      { category:'バックヤード', item:'BY扉', content:d.backyard_door },
-      { category:'バックヤード', item:'什器・家電', content:d.backyard_furniture },
-      { category:'バックヤード', item:'保管庫・ロッカー', content:d.backyard_storage },
-      { category:'バックヤード', item:'耐震対策', content:d.earthquake_measure },
-      { category:'トイレ', item:'トイレ', content:d.toilet_info },
-      { category:'更衣室', item:'更衣室', content:d.changing_room },
-      { category:'空調', item:'エアコン', content:d.ac_notes }
-    ];
-  }
-
-  function renderEquipmentTable(branchCode){
-    var q = eqSearch.value.trim().toLowerCase();
-    var rows = buildStoreEquipmentRows(STORE_DETAILS[branchCode]);
-    if(q){
-      rows = rows.filter(function(r){ return (r.item + r.content).toLowerCase().indexOf(q) !== -1; });
-    }
-    eqTableBody.innerHTML = rows.map(function(r){
-      return '<tr><td class="mono">' + r.category + '</td><td>' + r.item + '</td><td>' + (r.content || '-') + '</td></tr>';
-    }).join('');
-  }
-
-  // 図面上のオブジェクトをクリックすると出てくる備品情報(fixture_itemsテーブル)を、ポップアップと同じ列構成で一覧表示
+  // 図面上のオブジェクトをクリックすると出てくる備品情報(fixture_itemsテーブル)を、ポップアップと同じ列構成+店舗列で一覧表示
   var fixtureTableBody = document.getElementById('fixtureTableBody');
-  function renderFixtureTable(){
+  function renderFixtureTable(branchCode){
     var q = eqSearch.value.trim().toLowerCase();
     var names = Object.keys(FIXTURE_ITEMS);
     if(q){
@@ -1296,7 +1256,7 @@
     }
     fixtureTableBody.innerHTML = names.map(function(name){
       var f = FIXTURE_ITEMS[name];
-      return '<tr><td class="mono">' + f.category + '</td><td>' + name + '</td><td class="mono">' + f.code +
+      return '<tr><td>' + BRANCH_NAME[branchCode] + '</td><td class="mono">' + f.category + '</td><td>' + name + '</td><td class="mono">' + f.code +
         '</td><td class="mono">' + f.purchase + '</td><td class="mono">' + f.warranty + '</td><td class="mono">' + f.replace + '</td></tr>';
     }).join('');
   }
@@ -1331,14 +1291,13 @@
         infoRow('', d.requests) +
       '</div></div>' +
 
-      '<div class="info-card wide" style="border-style:dashed;"><div class="info-body" style="font-size:12px; color:var(--ink-soft);">売場現況・バックヤード設備・トイレ/更衣室/空調の詳細は「店舗設備一覧」タブでご確認いただけます。</div></div>';
+      '<div class="info-card wide" style="border-style:dashed;"><div class="info-body" style="font-size:12px; color:var(--ink-soft);">図面上のオブジェクトをクリックすると出てくる備品情報の一覧は「店舗設備一覧」タブでご確認いただけます。</div></div>';
   }
 
   function renderForSelectedStore(){
     var branchCode = globalStoreSelect.value;
     renderFloorPlan(branchCode);
-    renderEquipmentTable(branchCode);
-    renderFixtureTable();
+    renderFixtureTable(branchCode);
     renderStoreInfo(branchCode);
   }
 
