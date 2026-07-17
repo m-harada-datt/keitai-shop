@@ -1054,15 +1054,14 @@
     "BR-01": {
       zones:[
         { label:"バックヤード", top:2, left:2, width:96, height:17 },
-        { label:"レジ", top:21, left:2, width:22, height:47 },
-        { label:"売場", top:21, left:26, width:72, height:71, shade:true }
+        { label:"売場", top:21, left:2, width:96, height:77, shade:true }
       ],
       doors:[ { top:11, left:4 } ],
-      // 実際の図面(イオンモール大曲店・CAD平面図)に合わせた配置: L字カウンター+陳列棚2台+テーブル席2卓
-      lCounterPosition:{ top:56, left:29 },
-      shelfPositions:[ { top:34, left:56 }, { top:34, left:78 } ],
-      tablePositions:[ { top:60, left:56 }, { top:60, left:78 } ],
-      waitingPositions:[ { top:78, left:34 }, { top:84, left:34 }, { top:78, left:44 }, { top:84, left:44 }, { top:78, left:54 }, { top:84, left:54 } ]
+      // 送っていただいた図(壁で仕切られたレジ区画はなく、売場は1つの区画。左端にL字カウンター、その右上に陳列棚2台、右下にテーブル席2卓)に合わせた配置
+      lCounterPosition:{ top:56, left:15 },
+      shelfPositions:[ { top:30, left:46 }, { top:30, left:61 } ],
+      tablePositions:[ { top:58, left:58 }, { top:58, left:84 } ],
+      waitingPositions:[ { top:80, left:24 }, { top:86, left:24 }, { top:80, left:34 }, { top:86, left:34 }, { top:80, left:44 }, { top:86, left:44 } ]
     },
     "BR-02": {
       zones:[
