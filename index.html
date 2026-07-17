@@ -946,15 +946,18 @@
   var BRANCHES = [];
   var EQUIPMENT = [];
   var STORE_DETAILS = {};
+  var FIXTURE_ITEMS = {};
   var ACTIVE_BRANCH_CODES = ['BR-01', 'BR-02', 'BR-04']; // 今回の対象店舗: SBイオンモール大曲/SBイオンタウン大曲福田/SB湯沢
 
   async function loadEquipmentData(){
     var branchRes = await supabaseClient.from('branches').select('*').order('id');
     var eqRes = await supabaseClient.from('equipment').select('*').order('id');
     var detailRes = await supabaseClient.from('store_details').select('*');
+    var fixtureRes = await supabaseClient.from('fixture_items').select('*');
     if(branchRes.error) throw branchRes.error;
     if(eqRes.error) throw eqRes.error;
     if(detailRes.error) throw detailRes.error;
+    if(fixtureRes.error) throw fixtureRes.error;
 
     BRANCHES = branchRes.data.filter(function(b){ return ACTIVE_BRANCH_CODES.indexOf(b.code) !== -1; });
     EQUIPMENT = eqRes.data.filter(function(e){ return ACTIVE_BRANCH_CODES.indexOf(e.branch_code) !== -1; }).map(function(e){
@@ -972,6 +975,15 @@
       };
     });
     detailRes.data.forEach(function(d){ STORE_DETAILS[d.branch_code] = d; });
+    fixtureRes.data.forEach(function(f){
+      FIXTURE_ITEMS[f.name] = {
+        category: f.category,
+        code: f.code,
+        purchase: f.purchase_date,
+        warranty: f.warranty_until,
+        replace: f.replace_date
+      };
+    });
   }
 
   // ---- 店舗ごとに異なるフロアレイアウト(ゾーン配置のバリエーション) ----
@@ -1064,25 +1076,6 @@
   var eqDetailArea = document.getElementById('eqDetailArea');
   var eqModalOverlay = document.getElementById('eqModalOverlay');
 
-  // アイコン1点ごとの設備名 → 品番・購入日・保証期限・交換目安日(サンプル値)
-  var EQ_ITEM_SAMPLE = {
-    '接客カウンター': { code:'CNT-2201', purchase:'2022-04-01', warranty:'2027-03-31', replace:'2028-03-31' },
-    'テーブル席': { code:'TBL-1905', purchase:'2019-09-01', warranty:'2024-08-31', replace:'2026-08-31' },
-    '待合席': { code:'CHR-2003', purchase:'2020-03-15', warranty:'2025-03-14', replace:'2027-03-14' },
-    'ボックス席': { code:'BOX-1812', purchase:'2018-12-01', warranty:'2023-11-30', replace:'2025-11-30' },
-    '机': { code:'DSK-2107', purchase:'2021-07-01', warranty:'2026-06-30', replace:'2028-06-30' },
-    '椅子': { code:'CHR-B2204', purchase:'2022-04-01', warranty:'2027-03-31', replace:'2029-03-31' },
-    'ロッカー・保管庫': { code:'LKR-1611', purchase:'2016-11-01', warranty:'2021-10-31', replace:'2026-10-31' },
-    '家電・備品': { code:'APL-2308', purchase:'2023-08-01', warranty:'2025-07-31', replace:'2028-07-31' },
-    '什器(セレクション棚)': { code:'SHF-1908', purchase:'2019-08-01', warranty:'2024-07-31', replace:'2026-07-31' },
-    '鏡': { code:'MIR-2005', purchase:'2020-05-01', warranty:'2030-04-30', replace:'2035-04-30' },
-    '電子レンジ': { code:'MWO-2201', purchase:'2022-01-15', warranty:'2027-01-14', replace:'2029-01-14' },
-    '冷蔵庫': { code:'RFG-2110', purchase:'2021-10-01', warranty:'2026-09-30', replace:'2031-09-30' },
-    '流し台': { code:'SNK-1805', purchase:'2018-05-01', warranty:'2023-04-30', replace:'2028-04-30' },
-    'ウォーターサーバー': { code:'WTS-2303', purchase:'2023-03-01', warranty:'2025-02-28', replace:'2027-02-28' },
-    '金庫': { code:'SFE-1502', purchase:'2015-02-01', warranty:'2025-01-31', replace:'2035-01-31' }
-  };
-
   function openEqModal(title){
     renderFloorPlanDetail(title);
     eqModalOverlay.classList.add('open');
@@ -1100,14 +1093,15 @@
     if(e.target === eqModalOverlay) closeEqModal();
   });
 
-  // クリックされた1点分の設備情報だけを、台帳(Excel)と同じ列構成のポップアップに表示する
+  // クリックされた1点分の設備情報(fixture_itemsテーブルより)を、分類列付きでポップアップに表示する
   function renderFloorPlanDetail(title){
-    var s = EQ_ITEM_SAMPLE[title] || { code:'-', purchase:'-', warranty:'-', replace:'-' };
+    var s = FIXTURE_ITEMS[title] || { category:'-', code:'-', purchase:'-', warranty:'-', replace:'-' };
     eqDetailArea.innerHTML =
       '<div class="table-scroll">' +
         '<table class="eq-spec-table">' +
-          '<thead><tr><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th></tr></thead>' +
+          '<thead><tr><th>分類</th><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th></tr></thead>' +
           '<tbody><tr>' +
+            '<td>' + s.category + '</td>' +
             '<td>' + title + '</td>' +
             '<td class="mono">' + s.code + '</td>' +
             '<td class="mono">' + s.purchase + '</td>' +
