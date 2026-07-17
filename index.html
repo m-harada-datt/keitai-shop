@@ -533,6 +533,20 @@
   .fp-lcounter:hover{ transform:translate(-50%,-50%) scale(1.06); }
   .fp-shelf-stack:hover{ transform:translate(-50%,-50%) scale(1.08); }
 
+  /* ---- 図面画像モード用のクリック領域(見た目は透明、画像の上に重ねて配置) ---- */
+  .fp-hotspot{
+    position:absolute;
+    cursor:pointer;
+    background:transparent;
+    outline:1.5px dashed rgba(15,64,56,.35);
+    outline-offset:-2px;
+    transition:outline-color .12s ease, background .12s ease;
+  }
+  .fp-hotspot:hover{
+    outline:1.5px solid var(--gold);
+    background:rgba(199,154,60,.15);
+  }
+
   .fp-table-group{
     position:absolute;
     width:52px;
@@ -1052,16 +1066,16 @@
   // furniture: 大まかな什器配置イメージ(実寸ではありません)
   var STORE_LAYOUTS = {
     "BR-01": {
-      zones:[
-        { label:"バックヤード", top:2, left:2, width:96, height:17 },
-        { label:"売場", top:21, left:2, width:96, height:77, shade:true }
-      ],
-      doors:[],
-      // 送っていただいた図の通り: 壁の仕切りはなく売場は1区画。左端にL字カウンター、右上に陳列棚2台、右下にテーブル席2卓
-      lCounterPosition:{ top:56, left:15 },
-      shelfPositions:[ { top:30, left:46 }, { top:30, left:61 } ],
-      tablePositions:[ { top:58, left:58 }, { top:58, left:84 } ],
-      waitingPositions:[ { top:80, left:24 }, { top:86, left:24 }, { top:80, left:34 }, { top:86, left:34 }, { top:80, left:44 }, { top:86, left:44 } ]
+      // いただいた図面画像をそのまま表示(店舗固有の画像+クリック領域のみ座標指定)
+      image:"/br01-floorplan.png",
+      imageAspect:"756/793",
+      hotspots:[
+        { title:"接客カウンター", top:28.4, left:1.3, width:31.1, height:54.8 },
+        { title:"什器(セレクション棚)", top:22.4, left:40.3, width:7.3, height:14.8 },
+        { title:"什器(セレクション棚)", top:22.4, left:55.6, width:7.7, height:14.8 },
+        { title:"テーブル席", top:48.9, left:48.3, width:19.2, height:17.5 },
+        { title:"テーブル席", top:48.9, left:74.7, width:17.9, height:17.5 }
+      ]
     },
     "BR-02": {
       zones:[
@@ -1152,7 +1166,7 @@
     eqModalOverlay.classList.remove('open');
   }
   floorplanArea.addEventListener('click', function(e){
-    var el = e.target.closest('.fp-mini-counter, .fp-single-chair, .fp-box-seat, .fp-appliance, .fp-table-group, .fp-lcounter, .fp-shelf-stack');
+    var el = e.target.closest('.fp-mini-counter, .fp-single-chair, .fp-box-seat, .fp-appliance, .fp-table-group, .fp-lcounter, .fp-shelf-stack, .fp-hotspot');
     if(!el) return;
     openEqModal(el.title);
   });
@@ -1217,6 +1231,20 @@
     document.getElementById('fpBranchName').textContent = BRANCH_NAME[branchCode];
     var layout = STORE_LAYOUTS[branchCode];
     var d = STORE_DETAILS[branchCode];
+
+    // いただいた図面画像をそのまま表示するモード(店舗固有の画像がある場合)
+    if(layout.image){
+      floorplanArea.style.aspectRatio = layout.imageAspect || '4/3';
+      var hotspotsHtml = (layout.hotspots || []).map(function(h){
+        return '<div class="fp-hotspot" title="' + h.title + '" style="top:' + h.top + '%; left:' + h.left + '%; width:' + h.width + '%; height:' + h.height + '%;"></div>';
+      }).join('');
+      floorplanArea.innerHTML =
+        '<img src="' + layout.image + '" alt="' + BRANCH_NAME[branchCode] + ' 平面図" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;">' +
+        hotspotsHtml;
+      closeEqModal();
+      return;
+    }
+    floorplanArea.style.aspectRatio = '';
 
     var zonesHtml = layout.zones.map(function(z){
       return '<div class="fp-zone" style="top:' + z.top + '%; left:' + z.left + '%; width:' + z.width + '%; height:' + z.height + '%;' +
