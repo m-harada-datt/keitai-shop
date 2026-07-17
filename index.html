@@ -429,7 +429,7 @@
   }
   .eq-modal-overlay.open{display:flex;}
   .eq-modal{
-    width:min(420px, 100%);
+    width:min(560px, 100%);
     max-height:80vh;
     display:flex;
     flex-direction:column;
@@ -601,26 +601,19 @@
     box-shadow:0 1px 2px rgba(0,0,0,.15);
   }
 
-  .eq-detail{
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-  }
-  .eq-target{
-    font-size:13px;
+  .eq-spec-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .eq-spec-table th{
+    text-align:left;
+    background:#F5F8F7;
+    font-size:11px;
+    letter-spacing:.05em;
     color:var(--ink-soft);
-    padding-bottom:12px;
-    border-bottom:1px dashed var(--line);
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
   }
-  .eq-target strong{color:var(--ink); font-size:16px; display:block; margin-top:2px;}
-  .eq-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  .eq-item{background:#FBFCFC; border:1px solid var(--line-soft); border-radius:4px; padding:11px 13px;}
-  .eq-item .k{font-size:11px; color:var(--ink-soft); letter-spacing:.03em;}
-  .eq-item .v{font-size:14.5px; font-weight:700; margin-top:4px; font-family:var(--font-mono);}
-  .eq-item.warn{border-left:3px solid var(--gold);}
-  .eq-item.danger{border-left:3px solid var(--red);}
-  .callout{display:flex; gap:10px; font-size:12.5px; color:var(--ink-soft); align-items:flex-start;}
-  .callout .dot{color:var(--teal); font-weight:700;}
+  .eq-spec-table td{padding:10px;border-bottom:1px solid var(--line-soft);}
+  .eq-spec-table td.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
 
   /* ---- Tables (Tab2, Tab3) ---- */
   .table-toolbar{display:flex; gap:12px; align-items:center; margin-bottom:16px; flex-wrap:wrap;}
@@ -1083,16 +1076,16 @@
   var eqDetailArea = document.getElementById('eqDetailArea');
   var eqModalOverlay = document.getElementById('eqModalOverlay');
 
-  // アイコン1点ごとの設備名 → 表示単位・由来の対応表
-  var EQ_ITEM_META = {
-    '接客カウンター': { unit:'台', source:'売場' },
-    'テーブル席': { unit:'席', source:'売場' },
-    '待合席': { unit:'席', source:'売場' },
-    'ボックス席': { unit:'席', source:'売場' },
-    '机': { unit:'台', source:'バックヤード(BY一覧より)' },
-    '椅子': { unit:'脚', source:'バックヤード(BY一覧より)' },
-    'ロッカー・保管庫': { unit:'個', source:'バックヤード(BY一覧より)' },
-    '家電・備品': { unit:'個', source:'バックヤード(BY一覧より)' }
+  // アイコン1点ごとの設備名 → 品番・購入日・保証期限・交換目安日(サンプル値)
+  var EQ_ITEM_SAMPLE = {
+    '接客カウンター': { code:'CNT-2201', purchase:'2022-04-01', warranty:'2027-03-31', replace:'2028-03-31' },
+    'テーブル席': { code:'TBL-1905', purchase:'2019-09-01', warranty:'2024-08-31', replace:'2026-08-31' },
+    '待合席': { code:'CHR-2003', purchase:'2020-03-15', warranty:'2025-03-14', replace:'2027-03-14' },
+    'ボックス席': { code:'BOX-1812', purchase:'2018-12-01', warranty:'2023-11-30', replace:'2025-11-30' },
+    '机': { code:'DSK-2107', purchase:'2021-07-01', warranty:'2026-06-30', replace:'2028-06-30' },
+    '椅子': { code:'CHR-B2204', purchase:'2022-04-01', warranty:'2027-03-31', replace:'2029-03-31' },
+    'ロッカー・保管庫': { code:'LKR-1611', purchase:'2016-11-01', warranty:'2021-10-31', replace:'2026-10-31' },
+    '家電・備品': { code:'APL-2308', purchase:'2023-08-01', warranty:'2025-07-31', replace:'2028-07-31' }
   };
 
   function openEqModal(title){
@@ -1112,15 +1105,21 @@
     if(e.target === eqModalOverlay) closeEqModal();
   });
 
-  // クリックされた1点分の設備情報だけをポップアップに表示する(他の種類は含めない)
+  // クリックされた1点分の設備情報だけを、台帳(Excel)と同じ列構成のポップアップに表示する
   function renderFloorPlanDetail(title){
-    var meta = EQ_ITEM_META[title] || { unit:'', source:'' };
+    var s = EQ_ITEM_SAMPLE[title] || { code:'-', purchase:'-', warranty:'-', replace:'-' };
     eqDetailArea.innerHTML =
-      '<div class="eq-detail">' +
-        '<div class="eq-target">' + title + '<strong>(' + meta.source + ')</strong></div>' +
-        '<div class="eq-grid">' +
-          '<div class="eq-item"><div class="k">' + title + '</div><div class="v">1 ' + meta.unit + '</div></div>' +
-        '</div>' +
+      '<div class="table-scroll">' +
+        '<table class="eq-spec-table">' +
+          '<thead><tr><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th></tr></thead>' +
+          '<tbody><tr>' +
+            '<td>' + title + '</td>' +
+            '<td class="mono">' + s.code + '</td>' +
+            '<td class="mono">' + s.purchase + '</td>' +
+            '<td class="mono">' + s.warranty + '</td>' +
+            '<td class="mono">' + s.replace + '</td>' +
+          '</tr></tbody>' +
+        '</table>' +
       '</div>';
   }
 
