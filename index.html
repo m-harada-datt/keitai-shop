@@ -513,12 +513,13 @@
     box-shadow:0 1px 2px rgba(0,0,0,.08);
   }
   /* ---- クリック可能な什器アイコン共通(クリックできることが分かるようホバー/初期状態を装飾) ---- */
-  .fp-mini-counter, .fp-single-chair, .fp-box-seat, .fp-appliance, .fp-table-group{
+  .fp-mini-counter, .fp-single-chair, .fp-box-seat, .fp-appliance, .fp-table-group, .fp-lcounter, .fp-shelf-stack{
     outline:1.5px dashed rgba(15,64,56,.4);
     outline-offset:2px;
     transition:transform .12s ease, outline-color .12s ease, filter .12s ease;
   }
-  .fp-mini-counter:hover, .fp-single-chair:hover, .fp-box-seat:hover, .fp-appliance:hover, .fp-table-group:hover{
+  .fp-mini-counter:hover, .fp-single-chair:hover, .fp-box-seat:hover, .fp-appliance:hover, .fp-table-group:hover,
+  .fp-lcounter:hover, .fp-shelf-stack:hover{
     outline:1.5px solid var(--gold);
     outline-offset:2px;
     filter:brightness(1.08);
@@ -529,6 +530,8 @@
   .fp-box-seat:hover{ transform:translate(-50%,-50%) scale(1.2); }
   .fp-appliance:hover{ transform:translate(-50%,-50%) scale(1.3); }
   .fp-table-group:hover{ transform:translate(-50%,-50%) scale(1.08); }
+  .fp-lcounter:hover{ transform:translate(-50%,-50%) scale(1.06); }
+  .fp-shelf-stack:hover{ transform:translate(-50%,-50%) scale(1.08); }
 
   .fp-table-group{
     position:absolute;
@@ -558,6 +561,58 @@
   .fp-table-group .chr.s{ bottom:1px; left:50%; transform:translate(-50%,0); }
   .fp-table-group .chr.e{ top:50%; right:1px; transform:translate(0,-50%); }
   .fp-table-group .chr.w{ top:50%; left:1px; transform:translate(0,-50%); }
+
+  /* ---- L字接客カウンター(実際の平面図の形状に合わせたアイコン) ---- */
+  .fp-lcounter{
+    position:absolute;
+    width:40px; height:88px;
+    transform:translate(-50%,-50%);
+    cursor:pointer;
+  }
+  .fp-lcounter .riser{
+    position:absolute; top:0; left:22px; width:16px; height:24px;
+    background:#F3EFE6; border:1.5px solid #3A2C1C;
+  }
+  .fp-lcounter .body{
+    position:absolute; top:24px; left:22px; width:16px; height:40px;
+    background:#5C4630; border:1.5px solid #3A2C1C;
+    box-shadow:0 1px 2px rgba(0,0,0,.2);
+  }
+  .fp-lcounter .tab{
+    position:absolute; left:38px; width:10px; height:7px;
+    background:#5C4630; border:1.2px solid #3A2C1C;
+  }
+  .fp-lcounter .tab.t1{ top:27px; }
+  .fp-lcounter .tab.t2{ top:37px; }
+  .fp-lcounter .tab.t3{ top:47px; }
+  .fp-lcounter .tab.t4{ top:57px; }
+  .fp-lcounter .base{
+    position:absolute; top:64px; left:0; width:24px; height:10px;
+    background:#5C4630; border:1.5px solid #3A2C1C;
+  }
+  .fp-lcounter .leg{
+    position:absolute; top:74px; width:7px; height:12px;
+    background:#5C4630; border:1.2px solid #3A2C1C;
+  }
+  .fp-lcounter .leg.l1{ left:4px; }
+  .fp-lcounter .leg.l2{ left:14px; }
+
+  /* ---- 陳列什器(セレクション棚)アイコン ---- */
+  .fp-shelf-stack{
+    position:absolute;
+    width:26px; height:66px;
+    transform:translate(-50%,-50%);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+  }
+  .fp-shelf-stack .shelf{
+    flex:1;
+    background:#C1703F;
+    border:1.5px solid #3A2C1C;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);
+  }
+  .fp-shelf-stack .shelf + .shelf{ border-top:none; }
 
   /* ---- 座席実数アイコン(接客カウンター/待合椅子/ボックス席) ---- */
   .fp-mini-counter{
@@ -1003,9 +1058,10 @@
         { label:"売場", top:21, left:26, width:72, height:71, shade:true }
       ],
       doors:[ { top:11, left:4 } ],
-      // 実際の図面(イオンモール大曲店・CAD平面図)に合わせた配置: L字カウンター+テーブル席2卓
-      counterPositions:[ { top:42, left:29 }, { top:52, left:29 }, { top:61, left:34 } ],
-      tablePositions:[ { top:44, left:56 }, { top:44, left:78 } ],
+      // 実際の図面(イオンモール大曲店・CAD平面図)に合わせた配置: L字カウンター+陳列棚2台+テーブル席2卓
+      lCounterPosition:{ top:56, left:29 },
+      shelfPositions:[ { top:34, left:56 }, { top:34, left:78 } ],
+      tablePositions:[ { top:60, left:56 }, { top:60, left:78 } ],
       waitingPositions:[ { top:78, left:34 }, { top:84, left:34 }, { top:78, left:44 }, { top:84, left:44 }, { top:78, left:54 }, { top:84, left:54 } ]
     },
     "BR-02": {
@@ -1085,7 +1141,8 @@
     '机': { code:'DSK-2107', purchase:'2021-07-01', warranty:'2026-06-30', replace:'2028-06-30' },
     '椅子': { code:'CHR-B2204', purchase:'2022-04-01', warranty:'2027-03-31', replace:'2029-03-31' },
     'ロッカー・保管庫': { code:'LKR-1611', purchase:'2016-11-01', warranty:'2021-10-31', replace:'2026-10-31' },
-    '家電・備品': { code:'APL-2308', purchase:'2023-08-01', warranty:'2025-07-31', replace:'2028-07-31' }
+    '家電・備品': { code:'APL-2308', purchase:'2023-08-01', warranty:'2025-07-31', replace:'2028-07-31' },
+    '什器(セレクション棚)': { code:'SHF-1908', purchase:'2019-08-01', warranty:'2024-07-31', replace:'2026-07-31' }
   };
 
   function openEqModal(title){
@@ -1096,7 +1153,7 @@
     eqModalOverlay.classList.remove('open');
   }
   floorplanArea.addEventListener('click', function(e){
-    var el = e.target.closest('.fp-mini-counter, .fp-single-chair, .fp-box-seat, .fp-appliance, .fp-table-group');
+    var el = e.target.closest('.fp-mini-counter, .fp-single-chair, .fp-box-seat, .fp-appliance, .fp-table-group, .fp-lcounter, .fp-shelf-stack');
     if(!el) return;
     openEqModal(el.title);
   });
@@ -1176,9 +1233,28 @@
 
     // 座席の実数(0件は非表示)を、種類ごとに帯を分けてアイコン表示(店舗固有の配置指定があればそれを優先)
     var counterCount = (d && d.counter_actual) || 0;
-    var counterPos = layout.counterPositions ? layout.counterPositions.slice(0, counterCount) : layoutCluster(counterCount, 24, 34, 8, 92, 8);
-    var counterHtml = counterPos
-      .map(function(p){ return '<div class="fp-mini-counter" style="top:' + p.top + '%; left:' + p.left + '%;" title="接客カウンター"></div>'; }).join('');
+    var counterHtml;
+    if(layout.lCounterPosition && counterCount > 0){
+      // 実際の平面図の形状(L字カウンター)に合わせた専用アイコン
+      var lp = layout.lCounterPosition;
+      counterHtml = '<div class="fp-lcounter" style="top:' + lp.top + '%; left:' + lp.left + '%;" title="接客カウンター">' +
+        '<div class="riser"></div><div class="body"></div>' +
+        '<div class="tab t1"></div><div class="tab t2"></div><div class="tab t3"></div><div class="tab t4"></div>' +
+        '<div class="base"></div><div class="leg l1"></div><div class="leg l2"></div>' +
+      '</div>';
+    }else{
+      var counterPos = layout.counterPositions ? layout.counterPositions.slice(0, counterCount) : layoutCluster(counterCount, 24, 34, 8, 92, 8);
+      counterHtml = counterPos
+        .map(function(p){ return '<div class="fp-mini-counter" style="top:' + p.top + '%; left:' + p.left + '%;" title="接客カウンター"></div>'; }).join('');
+    }
+
+    // 陳列什器(セレクション棚): 店舗固有の配置指定がある場合のみ表示
+    var shelfHtml = (layout.shelfPositions || [])
+      .map(function(p){
+        return '<div class="fp-shelf-stack" style="top:' + p.top + '%; left:' + p.left + '%;" title="什器(セレクション棚)">' +
+          '<div class="shelf"></div><div class="shelf"></div><div class="shelf"></div>' +
+        '</div>';
+      }).join('');
 
     var tableCount = (d && d.table_seat_actual) || 0;
     var tablePos = layout.tablePositions ? layout.tablePositions.slice(0, tableCount) : layoutCluster(tableCount, 44, 58, 10, 90, 4);
@@ -1216,7 +1292,7 @@
       return '<div class="' + item.cls + '" style="top:' + p.top + '%; left:' + p.left + '%;" title="' + item.title + '"></div>';
     }).join('');
 
-    floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + tableHtml + waitingHtml + boxHtml + backyardHtml;
+    floorplanArea.innerHTML = zonesHtml + doorsHtml + counterHtml + shelfHtml + tableHtml + waitingHtml + boxHtml + backyardHtml;
 
     closeEqModal();
   }
