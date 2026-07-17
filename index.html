@@ -965,6 +965,7 @@
   var BRANCHES = [];
   var EQUIPMENT = [];
   var STORE_DETAILS = {};
+  var ACTIVE_BRANCH_CODES = ['BR-01', 'BR-02', 'BR-04']; // 今回の対象店舗: SBイオンモール大曲/SBイオンタウン大曲福田/SB湯沢
 
   async function loadEquipmentData(){
     var branchRes = await supabaseClient.from('branches').select('*').order('id');
@@ -974,8 +975,8 @@
     if(eqRes.error) throw eqRes.error;
     if(detailRes.error) throw detailRes.error;
 
-    BRANCHES = branchRes.data;
-    EQUIPMENT = eqRes.data.map(function(e){
+    BRANCHES = branchRes.data.filter(function(b){ return ACTIVE_BRANCH_CODES.indexOf(b.code) !== -1; });
+    EQUIPMENT = eqRes.data.filter(function(e){ return ACTIVE_BRANCH_CODES.indexOf(e.branch_code) !== -1; }).map(function(e){
       return {
         branch: e.branch_code,
         code: e.code,
@@ -1440,11 +1441,9 @@
   // ---- ログイン認証(モック用の簡易実装。本番のセキュリティ用途ではありません) ----
   var USERS = [
     { id:'hq_admin', password:'HQadmin2026!', role:'hq', name:'本部管理者' },
-    { id:'shibuya_staff', password:'Shibuya2026!', role:'store', store:'BR-01', name:'渋谷店 店舗スタッフ' },
-    { id:'shinjuku_staff', password:'Shinjuku2026!', role:'store', store:'BR-02', name:'新宿店 店舗スタッフ' },
-    { id:'yokohama_staff', password:'Yokohama2026!', role:'store', store:'BR-03', name:'横浜店 店舗スタッフ' },
-    { id:'ikebukuro_staff', password:'Ikebukuro2026!', role:'store', store:'BR-04', name:'池袋店 店舗スタッフ' },
-    { id:'akihabara_staff', password:'Akihabara2026!', role:'store', store:'BR-05', name:'秋葉原店 店舗スタッフ' }
+    { id:'shibuya_staff', password:'Shibuya2026!', role:'store', store:'BR-01', name:'SBイオンモール大曲 店舗スタッフ' },
+    { id:'shinjuku_staff', password:'Shinjuku2026!', role:'store', store:'BR-02', name:'SBイオンタウン大曲福田 店舗スタッフ' },
+    { id:'ikebukuro_staff', password:'Ikebukuro2026!', role:'store', store:'BR-04', name:'SB湯沢 店舗スタッフ' }
   ];
   var currentUser = null;
 
