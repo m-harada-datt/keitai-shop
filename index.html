@@ -860,6 +860,16 @@
             <tbody id="eqTableBody"></tbody>
           </table>
         </div>
+
+        <h3 style="margin:28px 0 12px; font-size:15px;">図面クリックで表示される備品情報(全店舗共通)</h3>
+        <div class="table-scroll">
+          <table class="master">
+            <thead>
+              <tr><th>分類</th><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th></tr>
+            </thead>
+            <tbody id="fixtureTableBody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Panel 3: Store info -->
@@ -1249,7 +1259,7 @@
 
   function buildStoreEquipmentRows(d){
     if(!d) return [];
-    var rows = [
+    return [
       { category:'売場', item:'座席数(平面図/実際)', content:d.seat_counts },
       { category:'売場', item:'平面図整合性', content:d.floor_plan_consistency },
       { category:'売場', item:'備考', content:d.floor_notes },
@@ -1263,16 +1273,6 @@
       { category:'更衣室', item:'更衣室', content:d.changing_room },
       { category:'空調', item:'エアコン', content:d.ac_notes }
     ];
-    // 図面上のオブジェクトをクリックすると出てくる備品情報(fixture_itemsテーブル)も同じ一覧に追加
-    Object.keys(FIXTURE_ITEMS).forEach(function(name){
-      var f = FIXTURE_ITEMS[name];
-      rows.push({
-        category: f.category,
-        item: name,
-        content: '品番:' + f.code + '、購入日:' + f.purchase + '、保証期限:' + f.warranty + '、交換目安日:' + f.replace
-      });
-    });
-    return rows;
   }
 
   function renderEquipmentTable(branchCode){
@@ -1283,6 +1283,21 @@
     }
     eqTableBody.innerHTML = rows.map(function(r){
       return '<tr><td class="mono">' + r.category + '</td><td>' + r.item + '</td><td>' + (r.content || '-') + '</td></tr>';
+    }).join('');
+  }
+
+  // 図面上のオブジェクトをクリックすると出てくる備品情報(fixture_itemsテーブル)を、ポップアップと同じ列構成で一覧表示
+  var fixtureTableBody = document.getElementById('fixtureTableBody');
+  function renderFixtureTable(){
+    var q = eqSearch.value.trim().toLowerCase();
+    var names = Object.keys(FIXTURE_ITEMS);
+    if(q){
+      names = names.filter(function(name){ return name.toLowerCase().indexOf(q) !== -1; });
+    }
+    fixtureTableBody.innerHTML = names.map(function(name){
+      var f = FIXTURE_ITEMS[name];
+      return '<tr><td class="mono">' + f.category + '</td><td>' + name + '</td><td class="mono">' + f.code +
+        '</td><td class="mono">' + f.purchase + '</td><td class="mono">' + f.warranty + '</td><td class="mono">' + f.replace + '</td></tr>';
     }).join('');
   }
 
@@ -1323,6 +1338,7 @@
     var branchCode = globalStoreSelect.value;
     renderFloorPlan(branchCode);
     renderEquipmentTable(branchCode);
+    renderFixtureTable();
     renderStoreInfo(branchCode);
   }
 
