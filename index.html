@@ -914,7 +914,7 @@
       <span class="icon">⚠</span>
       <div>
         <strong>アラート通知イメージ(メール/チャット通知)</strong>
-        保証期限まで残り12日:渋谷店 空調室内機(P-3007)。至急、交換要否のご確認をお願いします。
+        <span id="alertNoticeText">現在、通知対象のアラートはありません。</span>
       </div>
     </div>
 
@@ -1415,6 +1415,15 @@
     }).join('');
 
     document.getElementById('alertBadge').textContent = alertRows.length || '';
+
+    // 通知イメージも実際のアラートDBから生成(最も緊急度の高い1件を表示)
+    var noticeEl = document.getElementById('alertNoticeText');
+    if(alertRows.length){
+      var top = alertRows[0];
+      noticeEl.textContent = top.status + ':' + top.branch + ' ' + top.name + '(' + top.code + ')。至急、交換要否のご確認をお願いします。';
+    }else{
+      noticeEl.textContent = '現在、通知対象のアラートはありません。';
+    }
 
     if(currentUser) applyRoleRestrictions();
   }
