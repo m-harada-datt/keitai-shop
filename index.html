@@ -1067,10 +1067,21 @@
       boxPositions:[ { top:34, left:10 }, { top:42, left:10 }, { top:50, left:10 }, { top:58, left:10 }, { top:66, left:10 } ]
     },
     "BR-04": {
-      // いただいた図面画像をそのまま表示(店舗固有の画像。クリック領域は個別の名称指定があり次第追加)
+      // いただいた図面画像をそのまま表示(店舗固有の画像+クリック領域のみ座標指定)
       image:"/br04-floorplan.png",
       imageAspect:"1485/1155",
-      hotspots:[]
+      hotspots:[
+        // Y字什器3個+ダンベル型什器3個 → テーブル席
+        { title:"テーブル席", top:65.5, left:24.9, width:11.0, height:13.2 },
+        { title:"テーブル席", top:65.5, left:38.0, width:10.9, height:13.2 },
+        { title:"テーブル席", top:65.5, left:51.9, width:11.0, height:13.2 },
+        { title:"テーブル席", top:86.6, left:24.6, width:11.0, height:4.3 },
+        { title:"テーブル席", top:86.6, left:37.6, width:9.4, height:4.3 },
+        { title:"テーブル席", top:86.6, left:49.2, width:10.4, height:4.3 },
+        // 斜め3連ブロック2個 → 待合席
+        { title:"待合席", top:50.2, left:38.9, width:8.2, height:9.8 },
+        { title:"待合席", top:49.8, left:56.9, width:7.9, height:10.2 }
+      ]
     },
     "BR-05": {
       zones:[
