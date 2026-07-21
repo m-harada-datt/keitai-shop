@@ -480,10 +480,27 @@
     outline:1.5px dashed rgba(15,64,56,.35);
     outline-offset:-2px;
     transition:outline-color .12s ease, background .12s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:2px;
+    box-sizing:border-box;
   }
   .fp-hotspot:hover{
     outline:1.5px solid var(--gold);
     background:rgba(199,154,60,.15);
+  }
+  .fp-hotspot-label{
+    font-size:11px;
+    font-weight:700;
+    line-height:1.15;
+    text-align:center;
+    color:var(--ink);
+    background:rgba(255,255,255,.8);
+    padding:1px 3px;
+    border-radius:2px;
+    word-break:break-all;
+    pointer-events:none;
   }
 
   .fp-table-group{
@@ -1156,7 +1173,9 @@
     if(layout.image){
       floorplanArea.style.aspectRatio = layout.imageAspect || '4/3';
       var hotspotsHtml = (layout.hotspots || []).map(function(h){
-        return '<div class="fp-hotspot" title="' + h.title + '" style="top:' + h.top + '%; left:' + h.left + '%; width:' + h.width + '%; height:' + h.height + '%;"></div>';
+        return '<div class="fp-hotspot" title="' + h.title + '" style="top:' + h.top + '%; left:' + h.left + '%; width:' + h.width + '%; height:' + h.height + '%;">' +
+          '<span class="fp-hotspot-label">' + h.title + '</span>' +
+        '</div>';
       }).join('');
       floorplanArea.innerHTML =
         '<img src="' + layout.image + '" alt="' + BRANCH_NAME[branchCode] + ' 平面図" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;">' +
