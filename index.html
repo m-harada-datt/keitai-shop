@@ -1176,7 +1176,7 @@
     if(layout.image){
       floorplanArea.style.aspectRatio = layout.imageAspect || '4/3';
       var hotspotsHtml = (layout.hotspots || []).map(function(h){
-        var labelStyle = h.labelWidth ? ' style="width:' + h.labelWidth + 'px; white-space:normal;"' : '';
+        var labelStyle = h.labelWidth ? ' style="width:' + h.labelWidth + 'px; flex:0 0 ' + h.labelWidth + 'px; white-space:normal;"' : '';
         return '<div class="fp-hotspot" title="' + h.title + '" style="top:' + h.top + '%; left:' + h.left + '%; width:' + h.width + '%; height:' + h.height + '%;">' +
           '<span class="fp-hotspot-label"' + labelStyle + '>' + h.title + '</span>' +
         '</div>';
