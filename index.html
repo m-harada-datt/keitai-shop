@@ -1027,19 +1027,15 @@
       ]
     },
     "BR-02": {
-      zones:[
-        { label:"バックヤード", top:2, left:2, width:96, height:28 },
-        { label:"売場", top:32, left:2, width:96, height:64, shade:true }
-      ],
-      doors:[ { top:20, left:3 } ],
-      // 実際の図面(イオンタウン大曲福田店)に合わせた配置
-      tablePositions:[ { top:34, left:10 }, { top:34, left:28 }, { top:78, left:10 } ],
-      waitingPositions:[
-        { top:38, left:44 }, { top:38, left:56 }, { top:38, left:68 }, { top:38, left:80 },
-        { top:47, left:44 }, { top:47, left:56 }, { top:47, left:68 }, { top:47, left:80 },
-        { top:60, left:50 }, { top:60, left:62 }, { top:60, left:74 }, { top:60, left:86 }
-      ],
-      boxPositions:[ { top:70, left:72 }, { top:70, left:88 }, { top:84, left:72 }, { top:84, left:88 } ]
+      // いただいた図面画像をそのまま表示(店舗固有の画像+クリック領域のみ座標指定)
+      image:"/br02-floorplan.png",
+      imageAspect:"1482/1094",
+      hotspots:[
+        { title:"接客カウンター", top:70.8, left:5.7, width:10.8, height:15.1 },
+        { title:"テーブル席", top:27.0, left:6.7, width:8.8, height:10.1 },
+        { title:"テーブル席", top:27.0, left:18.6, width:8.4, height:10.1 },
+        { title:"テーブル席", top:47.5, left:6.7, width:8.8, height:10.5 }
+      ]
     },
     "BR-03": {
       zones:[
