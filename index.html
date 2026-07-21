@@ -1378,25 +1378,30 @@
     eqSearch.addEventListener('input', renderForSelectedStore);
     renderForSelectedStore();
 
-    // ---- 交換時期・保証期限アラート(図面に実際に展開されている備品のみを対象に自動判定) ----
+    // ---- 交換時期・保証期限アラート(バックヤード備品からランダムに抽出、同じ危険/警告ルールを適用) ----
     var ALERT_WARN_WINDOW_DAYS = 90; // 交換目安日までこの日数以内なら「警告」
-    function daysUntil(dateStr){
-      var target = new Date(dateStr + 'T00:00:00');
-      var today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return Math.round((target - today) / 86400000);
+    var ALERT_EXCLUDED_NAMES = ['鏡', '流し台', '金庫']; // 対象外
+    function formatDate(d){
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
     var alertRows = [];
     BRANCHES.forEach(function(b){
       getRelevantFixtureNames(b.code).forEach(function(name){
         var f = FIXTURE_ITEMS[name];
         if(!f) return;
-        var days = daysUntil(f.replace);
+        if(f.category !== 'バックヤード') return;
+        if(ALERT_EXCLUDED_NAMES.indexOf(name) !== -1) return;
+        if(Math.random() < 0.5) return; // ランダムに対象外にする
+
+        // ランダムな残り日数(-60〜+90日)を生成し、同じ危険/警告ルールで判定
+        var days = Math.floor(Math.random() * 151) - 60;
         var level = days < 0 ? 'danger' : (days <= ALERT_WARN_WINDOW_DAYS ? 'warn' : null);
         if(!level) return;
+        var randomNext = new Date();
+        randomNext.setDate(randomNext.getDate() + days);
         alertRows.push({
           branch: BRANCH_NAME[b.code], code: f.code, name: name, location: f.category,
-          install: f.purchase, warranty: f.warranty, next: f.replace,
+          install: f.purchase, warranty: f.warranty, next: formatDate(randomNext),
           status: days < 0 ? ('交換目安日を' + (-days) + '日超過') : ('残り' + days + '日'),
           alert: level
         });
