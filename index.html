@@ -962,36 +962,19 @@
   );
 
   var BRANCHES = [];
-  var EQUIPMENT = [];
   var STORE_DETAILS = {};
   var FIXTURE_ITEMS = {};
   var ACTIVE_BRANCH_CODES = ['BR-01', 'BR-02', 'BR-04']; // 今回の対象店舗: SBイオンモール大曲/SBイオンタウン大曲福田/SB湯沢
 
   async function loadEquipmentData(){
     var branchRes = await supabaseClient.from('branches').select('*').order('id');
-    var eqRes = await supabaseClient.from('equipment').select('*').order('id');
     var detailRes = await supabaseClient.from('store_details').select('*');
     var fixtureRes = await supabaseClient.from('fixture_items').select('*');
     if(branchRes.error) throw branchRes.error;
-    if(eqRes.error) throw eqRes.error;
     if(detailRes.error) throw detailRes.error;
     if(fixtureRes.error) throw fixtureRes.error;
 
     BRANCHES = branchRes.data.filter(function(b){ return ACTIVE_BRANCH_CODES.indexOf(b.code) !== -1; });
-    EQUIPMENT = eqRes.data.filter(function(e){ return ACTIVE_BRANCH_CODES.indexOf(e.branch_code) !== -1; }).map(function(e){
-      return {
-        branch: e.branch_code,
-        code: e.code,
-        name: e.name,
-        location: e.location,
-        install: e.install_date,
-        warranty: e.warranty_until,
-        next: e.next_replace,
-        status: e.status,
-        alert: e.alert_level,
-        pos: { top: e.pos_top, left: e.pos_left }
-      };
-    });
     detailRes.data.forEach(function(d){ STORE_DETAILS[d.branch_code] = d; });
     fixtureRes.data.forEach(function(f){
       FIXTURE_ITEMS[f.name] = {
@@ -1395,12 +1378,34 @@
     eqSearch.addEventListener('input', renderForSelectedStore);
     renderForSelectedStore();
 
-    // ---- 交換時期・保証期限アラート(ポップアップ内) ----
-    var alertRows = EQUIPMENT.filter(function(e){ return e.alert; })
-      .sort(function(a, b){ return (a.alert === 'danger' ? 0 : 1) - (b.alert === 'danger' ? 0 : 1); });
+    // ---- 交換時期・保証期限アラート(図面に実際に展開されている備品のみを対象に自動判定) ----
+    var ALERT_WARN_WINDOW_DAYS = 90; // 交換目安日までこの日数以内なら「警告」
+    function daysUntil(dateStr){
+      var target = new Date(dateStr + 'T00:00:00');
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return Math.round((target - today) / 86400000);
+    }
+    var alertRows = [];
+    BRANCHES.forEach(function(b){
+      getRelevantFixtureNames(b.code).forEach(function(name){
+        var f = FIXTURE_ITEMS[name];
+        if(!f) return;
+        var days = daysUntil(f.replace);
+        var level = days < 0 ? 'danger' : (days <= ALERT_WARN_WINDOW_DAYS ? 'warn' : null);
+        if(!level) return;
+        alertRows.push({
+          branch: BRANCH_NAME[b.code], code: f.code, name: name, location: f.category,
+          install: f.purchase, warranty: f.warranty, next: f.replace,
+          status: days < 0 ? ('交換目安日を' + (-days) + '日超過') : ('残り' + days + '日'),
+          alert: level
+        });
+      });
+    });
+    alertRows.sort(function(a, b){ return (a.alert === 'danger' ? 0 : 1) - (b.alert === 'danger' ? 0 : 1); });
 
     alertTableBody.innerHTML = alertRows.map(function(e){
-      return '<tr class="alert-' + e.alert + '"><td>' + BRANCH_NAME[e.branch] + '</td><td class="mono">' + e.code + '</td><td>' + e.name + '</td>' +
+      return '<tr class="alert-' + e.alert + '"><td>' + e.branch + '</td><td class="mono">' + e.code + '</td><td>' + e.name + '</td>' +
         '<td>' + e.location + '</td><td class="mono">' + e.install + '</td><td class="mono">' + e.warranty + '</td><td class="mono">' + e.next + '</td>' +
         '<td>' + e.status + '</td><td>' + ALERT_LABEL[e.alert] + '</td></tr>';
     }).join('');
