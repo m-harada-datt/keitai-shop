@@ -1378,23 +1378,33 @@
     eqSearch.addEventListener('input', renderForSelectedStore);
     renderForSelectedStore();
 
-    // ---- 交換時期・保証期限アラート(バックヤード備品から5件を抽出して固定表示。開くたびに変わらない) ----
-    // 抽出時のルール: バックヤード備品(鏡・流し台・金庫は対象外)からランダムに5件選び、
-    // 交換目安日を過ぎていれば危険、90日以内なら警告として固定した。
-    var FIXED_ALERT_PICKS = [
-      { branchCode:'BR-01', name:'冷蔵庫', next:'2026-05-22', status:'交換目安日を60日超過', alert:'danger' },
-      { branchCode:'BR-02', name:'Wi-Fiルーター', next:'2026-06-06', status:'交換目安日を45日超過', alert:'danger' },
-      { branchCode:'BR-04', name:'エアコン', next:'2026-07-17', status:'交換目安日を4日超過', alert:'danger' },
-      { branchCode:'BR-02', name:'電子レンジ', next:'2026-09-14', status:'残り55日', alert:'warn' },
-      { branchCode:'BR-04', name:'ウォーターサーバー', next:'2026-08-12', status:'残り22日', alert:'warn' }
-    ];
-    var alertRows = FIXED_ALERT_PICKS.map(function(p){
-      var f = FIXTURE_ITEMS[p.name];
-      return {
-        branch: BRANCH_NAME[p.branchCode], code: f.code, name: p.name, location: f.category,
-        install: f.purchase, warranty: f.warranty, next: p.next,
-        status: p.status, alert: p.alert
-      };
+    // ---- 交換時期・保証期限アラート(バックヤード備品[鏡・流し台・金庫は対象外]の実際の交換目安日から自動判定) ----
+    // 備品一覧・クリックポップアップと必ず同じ日付になるよう、fixture_itemsの値をそのまま使う(表示用の上書きはしない)
+    var ALERT_WARN_WINDOW_DAYS = 90; // 交換目安日までこの日数以内なら「警告」
+    var ALERT_EXCLUDED_NAMES = ['鏡', '流し台', '金庫']; // 対象外
+    function daysUntil(dateStr){
+      var target = new Date(dateStr + 'T00:00:00');
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return Math.round((target - today) / 86400000);
+    }
+    var alertRows = [];
+    BRANCHES.forEach(function(b){
+      getRelevantFixtureNames(b.code).forEach(function(name){
+        var f = FIXTURE_ITEMS[name];
+        if(!f) return;
+        if(f.category !== 'バックヤード') return;
+        if(ALERT_EXCLUDED_NAMES.indexOf(name) !== -1) return;
+        var days = daysUntil(f.replace);
+        var level = days < 0 ? 'danger' : (days <= ALERT_WARN_WINDOW_DAYS ? 'warn' : null);
+        if(!level) return;
+        alertRows.push({
+          branch: BRANCH_NAME[b.code], code: f.code, name: name, location: f.category,
+          install: f.purchase, warranty: f.warranty, next: f.replace,
+          status: days < 0 ? ('交換目安日を' + (-days) + '日超過') : ('残り' + days + '日'),
+          alert: level
+        });
+      });
     });
     alertRows.sort(function(a, b){ return (a.alert === 'danger' ? 0 : 1) - (b.alert === 'danger' ? 0 : 1); });
 
