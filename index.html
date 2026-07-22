@@ -680,10 +680,6 @@
     width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:3px;
     padding:6px 7px; font-family:var(--font-mono); font-size:12.5px;
   }
-  .verify-tag{
-    display:inline-block; background:var(--gold); color:var(--teal-deep); font-weight:700;
-    font-size:10.5px; padding:2px 8px; border-radius:10px; margin-left:10px; vertical-align:middle;
-  }
   .table-scroll{overflow-x:auto; border:1px solid var(--line-soft); border-radius:4px;}
   table.master{
     width:100%;
@@ -868,7 +864,7 @@
       <label for="tab1">店舗レイアウト図</label>
       <label for="tab2">店舗設備一覧</label>
       <label for="tab3">店舗情報</label>
-      <label for="tab4" id="tab4Label">設備マスタ管理<span class="verify-tag">検証用</span></label>
+      <label for="tab4" id="tab4Label">設備マスタ管理</label>
     </div>
 
     <div class="panels">
@@ -919,15 +915,18 @@
         <div id="storeInfoArea" class="info-grid"></div>
       </div>
 
-      <!-- Panel 4: Fixture master management (verification-only) -->
+      <!-- Panel 4: Fixture master management (HQ only) -->
       <div class="panel" id="panel4">
-        <div class="screen-note">画面イメージ④: 設備マスタの新規登録・編集・削除ができます。この機能は検証用の簡易実装であり、店舗を横断する共通マスタのため、変更は全店舗の表示に反映されます。</div>
+        <div class="screen-note">画面イメージ④: 設備マスタの新規登録・編集・削除ができます(本部管理者のみ)。登録時に対象店舗を指定できます。</div>
 
         <div class="table-toolbar">
           <button type="button" class="btn-primary" id="fixtureAddToggle">+ 新規登録</button>
         </div>
 
         <div id="fixtureAddForm" class="fixture-add-form" style="display:none;">
+          <select id="fxNewBranch">
+            <option value="">共通(全店舗)</option>
+          </select>
           <select id="fxNewCategory">
             <option value="売り場">売り場</option>
             <option value="バックヤード">バックヤード</option>
@@ -944,7 +943,7 @@
         <div class="table-scroll">
           <table class="master">
             <thead>
-              <tr><th>分類</th><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th><th>操作</th></tr>
+              <tr><th>店舗</th><th>分類</th><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th><th>操作</th></tr>
             </thead>
             <tbody id="fixtureMasterTableBody"></tbody>
           </table>
@@ -1378,17 +1377,21 @@
     var names = {};
     if(layout && layout.hotspots){
       layout.hotspots.forEach(function(h){ names[h.title] = true; });
-      return Object.keys(names);
+    }else{
+      var d = STORE_DETAILS[branchCode] || {};
+      if((d.counter_actual) > 0) names['接客カウンター'] = true;
+      if((d.table_seat_actual) > 0) names['テーブル席'] = true;
+      if((d.waiting_seat_actual) > 0) names['待合席'] = true;
+      if((d.box_seat_actual) > 0) names['ボックス席'] = true;
+      if((d.by_desk_count) > 0) names['机'] = true;
+      if((d.by_chair_count) > 0) names['椅子'] = true;
+      if((d.by_storage_count) > 0) names['ロッカー・保管庫'] = true;
+      if((d.by_appliance_count) > 0) names['家電・備品'] = true;
     }
-    var d = STORE_DETAILS[branchCode] || {};
-    if((d.counter_actual) > 0) names['接客カウンター'] = true;
-    if((d.table_seat_actual) > 0) names['テーブル席'] = true;
-    if((d.waiting_seat_actual) > 0) names['待合席'] = true;
-    if((d.box_seat_actual) > 0) names['ボックス席'] = true;
-    if((d.by_desk_count) > 0) names['机'] = true;
-    if((d.by_chair_count) > 0) names['椅子'] = true;
-    if((d.by_storage_count) > 0) names['ロッカー・保管庫'] = true;
-    if((d.by_appliance_count) > 0) names['家電・備品'] = true;
+    // 設備マスタ管理タブで店舗を指定して登録された什器も対象に含める
+    FIXTURE_RAW.forEach(function(f){
+      if(f.branch_code === branchCode) names[f.name] = true;
+    });
     return Object.keys(names);
   }
 
@@ -1418,9 +1421,18 @@
     });
   }
 
+  function branchOptionsHtml(selectedCode){
+    var opts = '<option value=""' + (!selectedCode ? ' selected' : '') + '>共通(全店舗)</option>';
+    opts += BRANCHES.map(function(b){
+      return '<option value="' + b.code + '"' + (b.code === selectedCode ? ' selected' : '') + '>' + escapeHtml(b.name) + '</option>';
+    }).join('');
+    return opts;
+  }
+
   function fixtureRowHtml(f){
     if(fixtureEditingId !== f.id){
       return '<tr>' +
+        '<td>' + (f.branch_code ? escapeHtml(BRANCH_NAME[f.branch_code] || f.branch_code) : '共通(全店舗)') + '</td>' +
         '<td class="mono">' + escapeHtml(f.category) + '</td>' +
         '<td>' + escapeHtml(f.name) + '</td>' +
         '<td class="mono">' + escapeHtml(f.code) + '</td>' +
@@ -1434,6 +1446,7 @@
       '</tr>';
     }
     return '<tr class="fx-editing">' +
+      '<td><select class="fx-input" data-field="branch_code">' + branchOptionsHtml(f.branch_code) + '</select></td>' +
       '<td><select class="fx-input" data-field="category">' +
         '<option value="売り場"' + (f.category === '売り場' ? ' selected' : '') + '>売り場</option>' +
         '<option value="バックヤード"' + (f.category === 'バックヤード' ? ' selected' : '') + '>バックヤード</option>' +
@@ -1479,6 +1492,7 @@
         var patch = {};
         row.querySelectorAll('.fx-input').forEach(function(inp){ patch[inp.dataset.field] = inp.value; });
         if(!patch.name || !patch.code){ alert('品名と品番は必須です'); return; }
+        if(!patch.branch_code) patch.branch_code = null;
         var updRes = await supabaseClient.from('fixture_items').update(patch).eq('id', id);
         if(updRes.error){ alert('保存に失敗しました: ' + updRes.error.message); return; }
         fixtureEditingId = null;
@@ -1491,6 +1505,8 @@
   var fixtureAddForm = document.getElementById('fixtureAddForm');
   if(fixtureAddToggle){
     fixtureAddToggle.addEventListener('click', function(){
+      var fxNewBranch = document.getElementById('fxNewBranch');
+      fxNewBranch.innerHTML = branchOptionsHtml('');
       fixtureAddForm.style.display = fixtureAddForm.style.display === 'none' ? '' : 'none';
     });
     document.getElementById('fxNewCancel').addEventListener('click', function(){
@@ -1501,6 +1517,7 @@
       var code = document.getElementById('fxNewCode').value.trim();
       if(!name || !code){ alert('品名と品番は必須です'); return; }
       var payload = {
+        branch_code: document.getElementById('fxNewBranch').value || null,
         category: document.getElementById('fxNewCategory').value,
         name: name,
         code: code,
