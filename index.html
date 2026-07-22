@@ -179,7 +179,8 @@
   }
   #tab1:checked ~ .tabset label[for="tab1"],
   #tab2:checked ~ .tabset label[for="tab2"],
-  #tab3:checked ~ .tabset label[for="tab3"]{
+  #tab3:checked ~ .tabset label[for="tab3"],
+  #tab4:checked ~ .tabset label[for="tab4"]{
     color:var(--teal-deep);
     background:var(--surface);
     border-color:var(--line);
@@ -188,6 +189,7 @@
   #tab1:checked ~ .panels #panel1{display:block;}
   #tab2:checked ~ .panels #panel2{display:block;}
   #tab3:checked ~ .panels #panel3{display:block;}
+  #tab4:checked ~ .panels #panel4{display:block;}
 
   /* ---- Store info panel (Tab3) ---- */
   .info-grid{
@@ -650,6 +652,38 @@
     font-size:13.5px;
     background:#FBFCFC;
   }
+  .btn-primary{
+    background:var(--teal-deep); color:#fff; border:none; border-radius:3px;
+    padding:9px 16px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:var(--font-jp);
+  }
+  .btn-primary:hover{background:var(--teal);}
+  .btn-link{
+    background:transparent; border:none; color:var(--teal-deep); font-weight:600;
+    font-size:12.5px; cursor:pointer; padding:2px 6px; font-family:var(--font-jp);
+  }
+  .btn-link:hover{text-decoration:underline;}
+  .btn-link.fx-delete{color:var(--red);}
+  .row-actions{white-space:nowrap;}
+  .fixture-add-form{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    background:var(--gold-tint); border:1px solid var(--line-soft); border-radius:4px;
+    padding:12px; margin-bottom:14px;
+  }
+  .fixture-add-form select, .fixture-add-form input{
+    border:1px solid var(--line); border-radius:3px; padding:8px 9px;
+    font-family:var(--font-jp); font-size:13px; background:#FFF;
+  }
+  .fixture-add-form input[type="text"]{width:120px;}
+  .fixture-add-form input[type="date"]{width:140px;}
+  tr.fx-editing td{background:var(--teal-tint);}
+  tr.fx-editing .fx-input{
+    width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:3px;
+    padding:6px 7px; font-family:var(--font-mono); font-size:12.5px;
+  }
+  .verify-tag{
+    display:inline-block; background:var(--gold); color:var(--teal-deep); font-weight:700;
+    font-size:10.5px; padding:2px 8px; border-radius:10px; margin-left:10px; vertical-align:middle;
+  }
   .table-scroll{overflow-x:auto; border:1px solid var(--line-soft); border-radius:4px;}
   table.master{
     width:100%;
@@ -829,10 +863,12 @@
     <input type="radio" name="tabgroup" id="tab1" checked>
     <input type="radio" name="tabgroup" id="tab2">
     <input type="radio" name="tabgroup" id="tab3">
+    <input type="radio" name="tabgroup" id="tab4">
     <div class="tabset">
       <label for="tab1">店舗レイアウト図</label>
       <label for="tab2">店舗設備一覧</label>
       <label for="tab3">店舗情報</label>
+      <label for="tab4" id="tab4Label">設備マスタ管理<span class="verify-tag">検証用</span></label>
     </div>
 
     <div class="panels">
@@ -881,6 +917,38 @@
       <div class="panel" id="panel3">
         <div class="screen-note">画面イメージ③: 店舗ごとの物件基本情報・防火防災・古物商管理者・備考要望を確認できます(現行はExcelで個別管理)。</div>
         <div id="storeInfoArea" class="info-grid"></div>
+      </div>
+
+      <!-- Panel 4: Fixture master management (verification-only) -->
+      <div class="panel" id="panel4">
+        <div class="screen-note">画面イメージ④: 設備マスタの新規登録・編集・削除ができます。この機能は検証用の簡易実装であり、店舗を横断する共通マスタのため、変更は全店舗の表示に反映されます。</div>
+
+        <div class="table-toolbar">
+          <button type="button" class="btn-primary" id="fixtureAddToggle">+ 新規登録</button>
+        </div>
+
+        <div id="fixtureAddForm" class="fixture-add-form" style="display:none;">
+          <select id="fxNewCategory">
+            <option value="売り場">売り場</option>
+            <option value="バックヤード">バックヤード</option>
+          </select>
+          <input type="text" id="fxNewName" placeholder="品名" />
+          <input type="text" id="fxNewCode" placeholder="品番" />
+          <input type="date" id="fxNewPurchase" title="購入日" />
+          <input type="date" id="fxNewWarranty" title="保証期限" />
+          <input type="date" id="fxNewReplace" title="交換目安日" />
+          <button type="button" class="btn-primary" id="fxNewSave">登録</button>
+          <button type="button" class="btn-link" id="fxNewCancel">キャンセル</button>
+        </div>
+
+        <div class="table-scroll">
+          <table class="master">
+            <thead>
+              <tr><th>分類</th><th>品名</th><th>品番</th><th>購入日</th><th>保証期限</th><th>交換目安日</th><th>操作</th></tr>
+            </thead>
+            <tbody id="fixtureMasterTableBody"></tbody>
+          </table>
+        </div>
       </div>
 
     </div>
@@ -961,7 +1029,22 @@
   var BRANCHES = [];
   var STORE_DETAILS = {};
   var FIXTURE_ITEMS = {};
+  var FIXTURE_RAW = []; // id付きの生データ(設備マスタ管理タブ[検証用]で使用)
   var ACTIVE_BRANCH_CODES = ['BR-01', 'BR-02', 'BR-04']; // 今回の対象店舗: SBイオンモール大曲/SBイオンタウン大曲福田/SB湯沢
+
+  function applyFixtureData(rows){
+    FIXTURE_RAW = rows.slice();
+    FIXTURE_ITEMS = {};
+    FIXTURE_RAW.forEach(function(f){
+      FIXTURE_ITEMS[f.name] = {
+        category: f.category,
+        code: f.code,
+        purchase: f.purchase_date,
+        warranty: f.warranty_until,
+        replace: f.replace_date
+      };
+    });
+  }
 
   async function loadEquipmentData(){
     var branchRes = await supabaseClient.from('branches').select('*').order('id');
@@ -973,15 +1056,17 @@
 
     BRANCHES = branchRes.data.filter(function(b){ return ACTIVE_BRANCH_CODES.indexOf(b.code) !== -1; });
     detailRes.data.forEach(function(d){ STORE_DETAILS[d.branch_code] = d; });
-    fixtureRes.data.forEach(function(f){
-      FIXTURE_ITEMS[f.name] = {
-        category: f.category,
-        code: f.code,
-        purchase: f.purchase_date,
-        warranty: f.warranty_until,
-        replace: f.replace_date
-      };
-    });
+    applyFixtureData(fixtureRes.data);
+  }
+
+  // 設備マスタを再取得し、関連する画面(マスタ一覧・店舗設備一覧・アラート)を再描画する
+  async function reloadFixtureData(){
+    var res = await supabaseClient.from('fixture_items').select('*');
+    if(res.error){ alert('設備マスタの再取得に失敗しました: ' + res.error.message); return; }
+    applyFixtureData(res.data);
+    renderFixtureMasterTable();
+    if(globalStoreSelect.value) renderForSelectedStore();
+    renderAlerts();
   }
 
   // ---- 店舗ごとに異なるフロアレイアウト(ゾーン配置のバリエーション) ----
@@ -1323,6 +1408,116 @@
     }).join('');
   }
 
+  // ---- タブ④: 設備マスタ管理(検証用実装。fixture_itemsテーブルへの直接CRUD) ----
+  var fixtureMasterBody = document.getElementById('fixtureMasterTableBody');
+  var fixtureEditingId = null;
+
+  function escapeHtml(str){
+    return String(str == null ? '' : str).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  function fixtureRowHtml(f){
+    if(fixtureEditingId !== f.id){
+      return '<tr>' +
+        '<td class="mono">' + escapeHtml(f.category) + '</td>' +
+        '<td>' + escapeHtml(f.name) + '</td>' +
+        '<td class="mono">' + escapeHtml(f.code) + '</td>' +
+        '<td class="mono">' + escapeHtml(f.purchase_date) + '</td>' +
+        '<td class="mono">' + escapeHtml(f.warranty_until) + '</td>' +
+        '<td class="mono">' + escapeHtml(f.replace_date) + '</td>' +
+        '<td class="row-actions">' +
+          '<button type="button" class="btn-link fx-edit" data-id="' + f.id + '">編集</button>' +
+          '<button type="button" class="btn-link fx-delete" data-id="' + f.id + '">削除</button>' +
+        '</td>' +
+      '</tr>';
+    }
+    return '<tr class="fx-editing">' +
+      '<td><select class="fx-input" data-field="category">' +
+        '<option value="売り場"' + (f.category === '売り場' ? ' selected' : '') + '>売り場</option>' +
+        '<option value="バックヤード"' + (f.category === 'バックヤード' ? ' selected' : '') + '>バックヤード</option>' +
+      '</select></td>' +
+      '<td><input class="fx-input" data-field="name" value="' + escapeHtml(f.name) + '" /></td>' +
+      '<td><input class="fx-input" data-field="code" value="' + escapeHtml(f.code) + '" /></td>' +
+      '<td><input class="fx-input" type="date" data-field="purchase_date" value="' + escapeHtml(f.purchase_date) + '" /></td>' +
+      '<td><input class="fx-input" type="date" data-field="warranty_until" value="' + escapeHtml(f.warranty_until) + '" /></td>' +
+      '<td><input class="fx-input" type="date" data-field="replace_date" value="' + escapeHtml(f.replace_date) + '" /></td>' +
+      '<td class="row-actions">' +
+        '<button type="button" class="btn-link fx-save" data-id="' + f.id + '">保存</button>' +
+        '<button type="button" class="btn-link fx-cancel" data-id="' + f.id + '">キャンセル</button>' +
+      '</td>' +
+    '</tr>';
+  }
+
+  function renderFixtureMasterTable(){
+    if(!fixtureMasterBody) return;
+    var rows = FIXTURE_RAW.slice().sort(function(a, b){ return a.name.localeCompare(b.name, 'ja'); });
+    fixtureMasterBody.innerHTML = rows.map(fixtureRowHtml).join('');
+  }
+
+  if(fixtureMasterBody){
+    fixtureMasterBody.addEventListener('click', async function(e){
+      var btn = e.target.closest('button');
+      if(!btn) return;
+      var id = Number(btn.dataset.id);
+
+      if(btn.classList.contains('fx-edit')){
+        fixtureEditingId = id;
+        renderFixtureMasterTable();
+      } else if(btn.classList.contains('fx-cancel')){
+        fixtureEditingId = null;
+        renderFixtureMasterTable();
+      } else if(btn.classList.contains('fx-delete')){
+        var target = FIXTURE_RAW.find(function(f){ return f.id === id; });
+        if(!confirm('「' + (target ? target.name : id) + '」を設備マスタから削除します。全店舗の表示から消えます。よろしいですか?')) return;
+        var delRes = await supabaseClient.from('fixture_items').delete().eq('id', id);
+        if(delRes.error){ alert('削除に失敗しました: ' + delRes.error.message); return; }
+        await reloadFixtureData();
+      } else if(btn.classList.contains('fx-save')){
+        var row = btn.closest('tr');
+        var patch = {};
+        row.querySelectorAll('.fx-input').forEach(function(inp){ patch[inp.dataset.field] = inp.value; });
+        if(!patch.name || !patch.code){ alert('品名と品番は必須です'); return; }
+        var updRes = await supabaseClient.from('fixture_items').update(patch).eq('id', id);
+        if(updRes.error){ alert('保存に失敗しました: ' + updRes.error.message); return; }
+        fixtureEditingId = null;
+        await reloadFixtureData();
+      }
+    });
+  }
+
+  var fixtureAddToggle = document.getElementById('fixtureAddToggle');
+  var fixtureAddForm = document.getElementById('fixtureAddForm');
+  if(fixtureAddToggle){
+    fixtureAddToggle.addEventListener('click', function(){
+      fixtureAddForm.style.display = fixtureAddForm.style.display === 'none' ? '' : 'none';
+    });
+    document.getElementById('fxNewCancel').addEventListener('click', function(){
+      fixtureAddForm.style.display = 'none';
+    });
+    document.getElementById('fxNewSave').addEventListener('click', async function(){
+      var name = document.getElementById('fxNewName').value.trim();
+      var code = document.getElementById('fxNewCode').value.trim();
+      if(!name || !code){ alert('品名と品番は必須です'); return; }
+      var payload = {
+        category: document.getElementById('fxNewCategory').value,
+        name: name,
+        code: code,
+        purchase_date: document.getElementById('fxNewPurchase').value || null,
+        warranty_until: document.getElementById('fxNewWarranty').value || null,
+        replace_date: document.getElementById('fxNewReplace').value || null
+      };
+      var insRes = await supabaseClient.from('fixture_items').insert(payload);
+      if(insRes.error){ alert('登録に失敗しました: ' + insRes.error.message); return; }
+      ['fxNewName','fxNewCode','fxNewPurchase','fxNewWarranty','fxNewReplace'].forEach(function(id){
+        document.getElementById(id).value = '';
+      });
+      fixtureAddForm.style.display = 'none';
+      await reloadFixtureData();
+    });
+  }
+
   // ---- タブ③: 店舗情報 ----
   var storeInfoArea = document.getElementById('storeInfoArea');
 
@@ -1432,6 +1627,7 @@
     eqSearch.addEventListener('input', renderForSelectedStore);
     renderForSelectedStore();
     renderAlerts();
+    renderFixtureMasterTable();
 
     if(currentUser) applyRoleRestrictions();
   }
@@ -1575,6 +1771,14 @@
     }
     if(globalStoreSelect.options.length) renderForSelectedStore();
     if(BRANCHES.length) renderAlerts();
+
+    var tab4Label = document.getElementById('tab4Label');
+    if(tab4Label){
+      tab4Label.style.display = isStoreRole ? 'none' : '';
+      if(isStoreRole && document.getElementById('tab4').checked){
+        document.getElementById('tab1').checked = true;
+      }
+    }
   }
 
   function showApp(){
