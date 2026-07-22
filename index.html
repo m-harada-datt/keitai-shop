@@ -924,9 +924,7 @@
         </div>
 
         <div id="fixtureAddForm" class="fixture-add-form" style="display:none;">
-          <select id="fxNewBranch">
-            <option value="">共通(全店舗)</option>
-          </select>
+          <select id="fxNewBranch"></select>
           <select id="fxNewCategory">
             <option value="売り場">売り場</option>
             <option value="バックヤード">バックヤード</option>
@@ -1027,15 +1025,17 @@
 
   var BRANCHES = [];
   var STORE_DETAILS = {};
-  var FIXTURE_ITEMS = {};
-  var FIXTURE_RAW = []; // id付きの生データ(設備マスタ管理タブ[検証用]で使用)
+  var FIXTURE_ITEMS = {}; // FIXTURE_ITEMS[branchCode][name] = {...}(什器は店舗ごとに独立したデータ)
+  var FIXTURE_RAW = []; // id付きの生データ(設備マスタ管理タブで使用)
   var ACTIVE_BRANCH_CODES = ['BR-01', 'BR-02', 'BR-04']; // 今回の対象店舗: SBイオンモール大曲/SBイオンタウン大曲福田/SB湯沢
 
   function applyFixtureData(rows){
     FIXTURE_RAW = rows.slice();
     FIXTURE_ITEMS = {};
     FIXTURE_RAW.forEach(function(f){
-      FIXTURE_ITEMS[f.name] = {
+      if(!f.branch_code) return; // 店舗未割当(移行対象外の旧データ)は各店舗の画面には出さない
+      if(!FIXTURE_ITEMS[f.branch_code]) FIXTURE_ITEMS[f.branch_code] = {};
+      FIXTURE_ITEMS[f.branch_code][f.name] = {
         category: f.category,
         code: f.code,
         purchase: f.purchase_date,
@@ -1198,7 +1198,7 @@
   var eqModalOverlay = document.getElementById('eqModalOverlay');
 
   function openEqModal(title){
-    renderFloorPlanDetail(title);
+    renderFloorPlanDetail(globalStoreSelect.value, title);
     eqModalOverlay.classList.add('open');
   }
   function closeEqModal(){
@@ -1214,9 +1214,9 @@
     if(e.target === eqModalOverlay) closeEqModal();
   });
 
-  // クリックされた1点分の設備情報(fixture_itemsテーブルより)を、分類列付きでポップアップに表示する
-  function renderFloorPlanDetail(title){
-    var s = FIXTURE_ITEMS[title] || { category:'-', code:'-', purchase:'-', warranty:'-', replace:'-' };
+  // クリックされた1点分の設備情報(fixture_itemsテーブルより、選択中の店舗のデータ)を、分類列付きでポップアップに表示する
+  function renderFloorPlanDetail(branchCode, title){
+    var s = (FIXTURE_ITEMS[branchCode] || {})[title] || { category:'-', code:'-', purchase:'-', warranty:'-', replace:'-' };
     eqDetailArea.innerHTML =
       '<div class="table-scroll">' +
         '<table class="eq-spec-table">' +
@@ -1399,13 +1399,13 @@
   var fixtureTableBody = document.getElementById('fixtureTableBody');
   function renderFixtureTable(branchCode){
     var q = eqSearch.value.trim().toLowerCase();
-    var relevant = getRelevantFixtureNames(branchCode);
-    var names = Object.keys(FIXTURE_ITEMS).filter(function(name){ return relevant.indexOf(name) !== -1; });
+    var byName = FIXTURE_ITEMS[branchCode] || {};
+    var names = getRelevantFixtureNames(branchCode).filter(function(name){ return byName[name]; });
     if(q){
       names = names.filter(function(name){ return name.toLowerCase().indexOf(q) !== -1; });
     }
     fixtureTableBody.innerHTML = names.map(function(name){
-      var f = FIXTURE_ITEMS[name];
+      var f = byName[name];
       return '<tr><td>' + BRANCH_NAME[branchCode] + '</td><td class="mono">' + f.category + '</td><td>' + name + '</td><td class="mono">' + f.code +
         '</td><td class="mono">' + f.purchase + '</td><td class="mono">' + f.warranty + '</td><td class="mono">' + f.replace + '</td></tr>';
     }).join('');
@@ -1422,17 +1422,15 @@
   }
 
   function branchOptionsHtml(selectedCode){
-    var opts = '<option value=""' + (!selectedCode ? ' selected' : '') + '>共通(全店舗)</option>';
-    opts += BRANCHES.map(function(b){
+    return BRANCHES.map(function(b){
       return '<option value="' + b.code + '"' + (b.code === selectedCode ? ' selected' : '') + '>' + escapeHtml(b.name) + '</option>';
     }).join('');
-    return opts;
   }
 
   function fixtureRowHtml(f){
     if(fixtureEditingId !== f.id){
       return '<tr>' +
-        '<td>' + (f.branch_code ? escapeHtml(BRANCH_NAME[f.branch_code] || f.branch_code) : '共通(全店舗)') + '</td>' +
+        '<td>' + escapeHtml(BRANCH_NAME[f.branch_code] || f.branch_code || '-') + '</td>' +
         '<td class="mono">' + escapeHtml(f.category) + '</td>' +
         '<td>' + escapeHtml(f.name) + '</td>' +
         '<td class="mono">' + escapeHtml(f.code) + '</td>' +
@@ -1465,7 +1463,10 @@
 
   function renderFixtureMasterTable(){
     if(!fixtureMasterBody) return;
-    var rows = FIXTURE_RAW.slice().sort(function(a, b){ return a.name.localeCompare(b.name, 'ja'); });
+    var rows = FIXTURE_RAW.slice().sort(function(a, b){
+      var branchDiff = (a.branch_code || '').localeCompare(b.branch_code || '', 'ja');
+      return branchDiff !== 0 ? branchDiff : a.name.localeCompare(b.name, 'ja');
+    });
     fixtureMasterBody.innerHTML = rows.map(fixtureRowHtml).join('');
   }
 
@@ -1483,7 +1484,8 @@
         renderFixtureMasterTable();
       } else if(btn.classList.contains('fx-delete')){
         var target = FIXTURE_RAW.find(function(f){ return f.id === id; });
-        if(!confirm('「' + (target ? target.name : id) + '」を設備マスタから削除します。全店舗の表示から消えます。よろしいですか?')) return;
+        var targetLabel = target ? ((BRANCH_NAME[target.branch_code] || target.branch_code) + ' / ' + target.name) : id;
+        if(!confirm('「' + targetLabel + '」を設備マスタから削除します。よろしいですか?')) return;
         var delRes = await supabaseClient.from('fixture_items').delete().eq('id', id);
         if(delRes.error){ alert('削除に失敗しました: ' + delRes.error.message); return; }
         await reloadFixtureData();
@@ -1491,8 +1493,7 @@
         var row = btn.closest('tr');
         var patch = {};
         row.querySelectorAll('.fx-input').forEach(function(inp){ patch[inp.dataset.field] = inp.value; });
-        if(!patch.name || !patch.code){ alert('品名と品番は必須です'); return; }
-        if(!patch.branch_code) patch.branch_code = null;
+        if(!patch.name || !patch.code || !patch.branch_code){ alert('店舗・品名・品番は必須です'); return; }
         var updRes = await supabaseClient.from('fixture_items').update(patch).eq('id', id);
         if(updRes.error){ alert('保存に失敗しました: ' + updRes.error.message); return; }
         fixtureEditingId = null;
@@ -1515,9 +1516,10 @@
     document.getElementById('fxNewSave').addEventListener('click', async function(){
       var name = document.getElementById('fxNewName').value.trim();
       var code = document.getElementById('fxNewCode').value.trim();
-      if(!name || !code){ alert('品名と品番は必須です'); return; }
+      var branchCode = document.getElementById('fxNewBranch').value;
+      if(!branchCode || !name || !code){ alert('店舗・品名・品番は必須です'); return; }
       var payload = {
-        branch_code: document.getElementById('fxNewBranch').value || null,
+        branch_code: branchCode,
         category: document.getElementById('fxNewCategory').value,
         name: name,
         code: code,
@@ -1598,8 +1600,9 @@
       isStoreScoped ? '交換時期・保証期限アラート(自店舗)' : '交換時期・保証期限アラート(全店舗横断)';
     var alertRows = [];
     alertBranches.forEach(function(b){
+      var byName = FIXTURE_ITEMS[b.code] || {};
       getRelevantFixtureNames(b.code).forEach(function(name){
-        var f = FIXTURE_ITEMS[name];
+        var f = byName[name];
         if(!f) return;
         if(f.category !== 'バックヤード') return;
         if(ALERT_EXCLUDED_NAMES.indexOf(name) !== -1) return;
