@@ -903,7 +903,7 @@
 <div class="popup-panel" id="alertPopup">
   <div class="resize-handle" data-target="alertPopup"></div>
   <div class="popup-header">
-    <span>交換時期・保証期限アラート(全店舗横断)</span>
+    <span id="alertPopupTitle">交換時期・保証期限アラート(全店舗横断)</span>
     <button type="button" class="popup-min" data-target="alertPopup" aria-label="最小化">－</button>
   </div>
   <div class="popup-body">
@@ -1378,9 +1378,12 @@
   }
   function renderAlerts(){
     var alertBranches = BRANCHES;
-    if(currentUser && currentUser.role === 'store'){
+    var isStoreScoped = !!(currentUser && currentUser.role === 'store');
+    if(isStoreScoped){
       alertBranches = BRANCHES.filter(function(b){ return b.code === currentUser.store; });
     }
+    document.getElementById('alertPopupTitle').textContent =
+      isStoreScoped ? '交換時期・保証期限アラート(自店舗)' : '交換時期・保証期限アラート(全店舗横断)';
     var alertRows = [];
     alertBranches.forEach(function(b){
       getRelevantFixtureNames(b.code).forEach(function(name){
