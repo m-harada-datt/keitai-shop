@@ -1365,28 +1365,24 @@
 
   var alertTableBody = document.getElementById('alertTableBody');
 
-  function initAfterLoad(){
-    BRANCHES.forEach(function(b){ BRANCH_NAME[b.code] = b.name; });
-    globalStoreSelect.innerHTML = BRANCHES.map(function(b){
-      return '<option value="' + b.code + '">' + b.name + '</option>';
-    }).join('');
-
-    globalStoreSelect.addEventListener('change', renderForSelectedStore);
-    eqSearch.addEventListener('input', renderForSelectedStore);
-    renderForSelectedStore();
-
-    // ---- 交換時期・保証期限アラート(バックヤード備品[鏡・流し台・金庫は対象外]の実際の交換目安日から自動判定) ----
-    // 備品一覧・クリックポップアップと必ず同じ日付になるよう、fixture_itemsの値をそのまま使う(表示用の上書きはしない)
-    var ALERT_WARN_WINDOW_DAYS = 90; // 交換目安日までこの日数以内なら「警告」
-    var ALERT_EXCLUDED_NAMES = ['鏡', '流し台', '金庫']; // 対象外
-    function daysUntil(dateStr){
-      var target = new Date(dateStr + 'T00:00:00');
-      var today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return Math.round((target - today) / 86400000);
+  // ---- 交換時期・保証期限アラート(バックヤード備品[鏡・流し台・金庫は対象外]の実際の交換目安日から自動判定) ----
+  // 備品一覧・クリックポップアップと必ず同じ日付になるよう、fixture_itemsの値をそのまま使う(表示用の上書きはしない)
+  // 店舗ログイン時は自店舗分のみ、本部ログイン時は全店舗横断で表示する
+  var ALERT_WARN_WINDOW_DAYS = 90; // 交換目安日までこの日数以内なら「警告」
+  var ALERT_EXCLUDED_NAMES = ['鏡', '流し台', '金庫']; // 対象外
+  function daysUntil(dateStr){
+    var target = new Date(dateStr + 'T00:00:00');
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+  }
+  function renderAlerts(){
+    var alertBranches = BRANCHES;
+    if(currentUser && currentUser.role === 'store'){
+      alertBranches = BRANCHES.filter(function(b){ return b.code === currentUser.store; });
     }
     var alertRows = [];
-    BRANCHES.forEach(function(b){
+    alertBranches.forEach(function(b){
       getRelevantFixtureNames(b.code).forEach(function(name){
         var f = FIXTURE_ITEMS[name];
         if(!f) return;
@@ -1421,6 +1417,18 @@
     }else{
       noticeEl.textContent = '現在、通知対象のアラートはありません。';
     }
+  }
+
+  function initAfterLoad(){
+    BRANCHES.forEach(function(b){ BRANCH_NAME[b.code] = b.name; });
+    globalStoreSelect.innerHTML = BRANCHES.map(function(b){
+      return '<option value="' + b.code + '">' + b.name + '</option>';
+    }).join('');
+
+    globalStoreSelect.addEventListener('change', renderForSelectedStore);
+    eqSearch.addEventListener('input', renderForSelectedStore);
+    renderForSelectedStore();
+    renderAlerts();
 
     if(currentUser) applyRoleRestrictions();
   }
@@ -1563,6 +1571,7 @@
       globalStoreSelect.disabled = false;
     }
     if(globalStoreSelect.options.length) renderForSelectedStore();
+    if(BRANCHES.length) renderAlerts();
   }
 
   function showApp(){
